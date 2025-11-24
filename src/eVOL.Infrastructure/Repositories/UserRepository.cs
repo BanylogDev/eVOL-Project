@@ -118,6 +118,7 @@ namespace eVOL.Infrastructure.Repositories
         public void RemoveUser(User user)
         {
             _context.Remove(user);
+
         }
 
 

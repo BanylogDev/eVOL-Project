@@ -203,6 +203,10 @@ namespace eVOL.API.Configuration
             services.AddScoped<IMongoUnitOfWork, MongoUnitOfWork>();
 
 
+            // SeedData
+
+            services.AddScoped<SeedData>();
+
 
             return services;
         }

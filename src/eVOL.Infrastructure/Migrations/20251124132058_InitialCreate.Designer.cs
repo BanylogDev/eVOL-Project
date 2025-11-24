@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using eVOL.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using eVOL.Infrastructure.Data;
 namespace eVOL.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251124132058_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -124,8 +127,7 @@ namespace eVOL.Infrastructure.Migrations
                         .HasColumnType("varchar(100)");
 
                     b.Property<int>("ClaimedById")
-                        .HasColumnType("int")
-                        .HasColumnName("ClaimedBy");
+                        .HasColumnType("int");
 
                     b.Property<bool>("ClaimedStatus")
                         .HasColumnType("tinyint(1)");
@@ -136,12 +138,10 @@ namespace eVOL.Infrastructure.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200)")
-                        .HasColumnName("Name");
+                        .HasColumnType("varchar(200)");
 
                     b.Property<int>("OpenedById")
-                        .HasColumnType("int")
-                        .HasColumnName("OpenedBy");
+                        .HasColumnType("int");
 
                     b.Property<string>("Text")
                         .IsRequired()

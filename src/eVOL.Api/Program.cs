@@ -1,7 +1,8 @@
+using eVOL.API.Configuration;
 using eVOL.API.Hubs;
+using eVOL.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-using eVOL.API.Configuration;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -45,5 +46,9 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<ChatHub>("/chat-hub");
+
+using var scope = app.Services.CreateScope();
+var seeder = scope.ServiceProvider.GetRequiredService<SeedData>();
+await seeder.InitializeAsync();
 
 app.Run();

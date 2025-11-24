@@ -15,8 +15,8 @@ namespace eVOL.Domain.Entities
         public int OpenedById { get; set; }
         public User OpenedBy { get; set; }
 
-        public int? ClaimedById { get; set; }
-        public User? ClaimedBy { get; set; }
+        public int ClaimedById { get; set; }
+        public User ClaimedBy { get; set; }
 
         public bool ClaimedStatus { get; set; }
         public DateTime CreatedAt { get; set; }

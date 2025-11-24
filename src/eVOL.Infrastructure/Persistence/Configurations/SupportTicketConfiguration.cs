@@ -23,8 +23,18 @@ public sealed class SupportTicketConfiguration : IEntityTypeConfiguration<Suppor
                .IsRequired()
                .HasMaxLength(2000);
 
-        builder.Property(t => t.ClaimedStatus).IsRequired();
-        builder.Property(t => t.CreatedAt).IsRequired();
+        builder.Property(t => t.ClaimedStatus)
+               .IsRequired();
+
+        builder.Property(t => t.CreatedAt)
+               .IsRequired();
+
+        // Foreign keys
+        builder.Property(t => t.OpenedById)
+               .IsRequired();
+
+        builder.Property(t => t.ClaimedById)
+               .IsRequired();
 
         // Relationships
         builder.HasOne(t => t.OpenedBy)
@@ -33,13 +43,13 @@ public sealed class SupportTicketConfiguration : IEntityTypeConfiguration<Suppor
                .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(t => t.ClaimedBy)
-               .WithMany(u => u.ClaimedTickets) 
+               .WithMany(u => u.ClaimedTickets)
                .HasForeignKey(t => t.ClaimedById)
                .OnDelete(DeleteBehavior.Restrict);
 
-        // Many-to-many users
-        builder.HasMany(t => t.SupportTicketUsers)
-               .WithMany()
-               .UsingEntity(j => j.ToTable("SupportTicketUsers"));
+        builder
+            .HasMany(t => t.SupportTicketUsers)
+            .WithMany(u => u.SupportTickets)
+            .UsingEntity(j => j.ToTable("SupportTicketUsers"));
     }
 }
