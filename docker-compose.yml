@@ -7,14 +7,13 @@ services:
       context: ./nginx
       dockerfile: Dockerfile
     ports:
-      - "8080:80"       
+      - "8080:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - evol.api1
       - evol.api2
       - evol.api3
-#      - evol.client
     networks:
       - evol-network
     restart: unless-stopped
@@ -27,10 +26,14 @@ services:
     env_file:
       - .env
     depends_on:
-      - evol.mysql
-      - evol.redis
-      - evol.mongodb
-      - evol.seq
+      evol.postgres:
+        condition: service_healthy
+      evol.redis:
+        condition: service_started
+      evol.mongodb:
+        condition: service_started
+      evol.seq:
+        condition: service_started
     networks:
       - evol-network
     expose:
@@ -47,10 +50,14 @@ services:
     env_file:
       - .env
     depends_on:
-      - evol.mysql
-      - evol.redis
-      - evol.mongodb
-      - evol.seq
+      evol.postgres:
+        condition: service_healthy
+      evol.redis:
+        condition: service_started
+      evol.mongodb:
+        condition: service_started
+      evol.seq:
+        condition: service_started
     networks:
       - evol-network
     expose:
@@ -67,53 +74,43 @@ services:
     env_file:
       - .env
     depends_on:
-      - evol.mysql
-      - evol.redis
-      - evol.mongodb
-      - evol.seq
+      evol.postgres:
+        condition: service_healthy
+      evol.redis:
+        condition: service_started
+      evol.mongodb:
+        condition: service_started
+      evol.seq:
+        condition: service_started
     networks:
       - evol-network
     expose:
       - "8080"
+    ports:
+      - "8083:8080"
     environment:
       - DOTNET_URLS=http://0.0.0.0:8080
     restart: unless-stopped
-    ports:
-      - "8083:8080"
 
-#  evol.client:
-#    container_name: evol.client
-#    build:
-#      context: ./src/eVOL.Client/eVOL.Client
-#      dockerfile: Dockerfile
-#    ports:
-#      - "5001:8080"
-#    environment:
-#      - ASPNETCORE_ENVIRONMENT=Development
-#   depends_on:
-#      - evol.api1
-#      - evol.api2
-#      - evol.api3
-#    networks:
-#      - evol-network
-#    restart: unless-stopped
-
-  evol.mysql:
-    container_name: evol.mysql
-    image: mysql:8.0
-    command: --default-authentication-plugin=mysql_native_password
+  evol.postgres:
+    container_name: evol.postgres
+    image: postgres:16
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: evol_db
-      MYSQL_USER: evol_user
-      MYSQL_PASSWORD: evol_password
+      POSTGRES_USER: evol_user
+      POSTGRES_PASSWORD: evol_password
+      POSTGRES_DB: evol_db
     ports:
-      - "3307:3306"
+      - "5433:5432"
     volumes:
-      - evol-mysql-data:/var/lib/mysql
+      - evol-postgres-data:/var/lib/postgresql/data
     networks:
       - evol-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U evol_user -d evol_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   evol.mongodb:
     container_name: evol.mongodb
@@ -145,7 +142,7 @@ services:
     container_name: evol.seq
     image: datalust/seq:latest
     ports:
-      - "5341:80"   
+      - "5341:80"
     environment:
       - ACCEPT_EULA=Y
       - SEQ_FIRSTRUN_ADMINPASSWORD=1234
@@ -156,18 +153,20 @@ services:
     restart: unless-stopped
 
   evol.rabbitmq:
+    container_name: evol.rabbitmq
     image: rabbitmq:3-management
     ports:
       - "5672:5672"
       - "15672:15672"
-
+    networks:
+      - evol-network
+    restart: unless-stopped
 
 volumes:
-  evol-mysql-data:
+  evol-postgres-data:
   evol-mongodb-data:
   evol-redis-data:
   evol-seq-data:
-
 
 networks:
   evol-network:

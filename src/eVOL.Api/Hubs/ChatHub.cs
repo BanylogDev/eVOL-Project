@@ -1,6 +1,10 @@
-﻿using eVOL.Application.UseCases.UCInterfaces.IChatGroupCases;
-using eVOL.Application.UseCases.UCInterfaces.ISupportTicketCases;
+﻿using eVOL.Application.Features.ChatGroupCases.Commands.AddUserToChatGroup;
+using eVOL.Application.Features.ChatGroupCases.Commands.LeaveChatGroup;
+using eVOL.Application.Features.ChatGroupCases.Commands.RemoveUserFromChatGroup;
+using eVOL.Application.Features.ChatGroupCases.Commands.SendChatGroupMessage;
+using eVOL.Application.Features.SupportTicketCases.Commands.SendSupportTicketMessage;
 using eVOL.Domain.Entities;
+using MediatR;
 using Microsoft.AspNetCore.SignalR;
 
 namespace eVOL.API.Hubs
@@ -8,36 +12,22 @@ namespace eVOL.API.Hubs
     public class ChatHub : Hub
     {
 
-        private readonly IAddUserToChatGroupUseCase _addUserToChatGroupUseCase;
-        private readonly IRemoveUserFromChatGroupUseCase _removeUserFromChatGroupUseCase;
-        private readonly ISendChatGroupMessageUseCase _sendChatGroupMessageUseCase;
-        private readonly ILeaveChatGroupUseCase _leaveChatGroupUseCase;
-        private readonly ISendSupportTicketMessageUseCase _sendSupportTicketMessageUseCase;
+        private readonly ISender _sender;
 
-        public ChatHub(IAddUserToChatGroupUseCase addUserToChatGroupUseCase,
-            IRemoveUserFromChatGroupUseCase removeUserFromChatGroupUseCase,
-            ISendChatGroupMessageUseCase sendChatGroupMessageUseCase,
-            ILeaveChatGroupUseCase leaveChatGroupUseCase,
-            ISendSupportTicketMessageUseCase sendSupportTicketMessageUseCase)
+        public ChatHub(ISender sender)
         {
-            _addUserToChatGroupUseCase = addUserToChatGroupUseCase;
-            _removeUserFromChatGroupUseCase = removeUserFromChatGroupUseCase;
-            _sendChatGroupMessageUseCase = sendChatGroupMessageUseCase;
-            _leaveChatGroupUseCase = leaveChatGroupUseCase;
-            _sendSupportTicketMessageUseCase = sendSupportTicketMessageUseCase;
+            _sender = sender;
         }
 
         public async Task AddUserToGroup(string groupName, int userId)
         {
 
-            var user = await _addUserToChatGroupUseCase.ExecuteAsync(userId, groupName);
+            var user = await _sender.Send(new AddUserToChatGroupCommand(userId, groupName));
 
-            if (user == null)
-            {
-                return;
-            }
+            if (user == null) return;
 
             await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+
             await Clients.Group(groupName).SendAsync("ReceiveGroupMessage", user.Name, new ChatMessage
             {
                 Text = $"{user.Name} has joined the group!",
@@ -47,14 +37,12 @@ namespace eVOL.API.Hubs
 
         public async Task LeaveGroup(string groupName, int userId)
         {
-            var user = await _leaveChatGroupUseCase.ExecuteAsync(userId, groupName);
+            var user = await _sender.Send(new LeaveChatGroupCommand(userId, groupName));
 
-            if (user == null)
-            {
-                return;
-            }
+            if (user == null) return;
 
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
+
             await Clients.Group(groupName).SendAsync("ReceiveGroupMessage", user.Name, new ChatMessage
             {
                 Text = $"{user.Name} has left the group!",
@@ -64,14 +52,12 @@ namespace eVOL.API.Hubs
 
         public async Task RemoveUserFromGroup(string groupName, int userId)
         {
-            var user = await _removeUserFromChatGroupUseCase.ExecuteAsync(userId, groupName);
+            var user = await _sender.Send(new RemoveUserFromChatGroupCommand(userId, groupName));
 
-            if (user == null)
-            {
-                return;
-            }
+            if (user == null) return;
 
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
+
             await Clients.Group(groupName).SendAsync("ReceiveGroupMessage", user.Name, new ChatMessage
             {
                 Text = $"{user.Name} has left the group!",
@@ -81,23 +67,19 @@ namespace eVOL.API.Hubs
 
         public async Task SendGroupMessage(string groupName, int userId, string message)
         {
-            (ChatMessage? newMessage, User? user) = await _sendChatGroupMessageUseCase.ExecuteAsync(message, groupName, userId);
+            (ChatMessage? newMessage, User? user) = await _sender.Send(new SendChatGroupMessageCommand(message, groupName, userId));
 
-            if (newMessage == null || user == null)
-            {
-                return;
-            }
+            if (newMessage == null || user == null) return;
 
             await Clients.Group(groupName).SendAsync("ReceiveGroupCustomMessage", user.Name, newMessage);
         }
 
         public async Task SendSupportTicketMessage(string supportTicketName, int userId, string message)
         {
-            (ChatMessage? newMessage, User? user) = await _sendSupportTicketMessageUseCase.ExecuteAsync(message, supportTicketName, userId);
-            if (newMessage == null || user == null)
-            {
-                return;
-            }
+            (ChatMessage? newMessage, User? user) = await _sender.Send(new SendSupportTicketMessageCommand(message, supportTicketName, userId));
+
+            if (newMessage == null || user == null) return;
+
             await Clients.Group(supportTicketName).SendAsync("ReceiveSupportTicketCustomMessage", user.Name, newMessage);
         }
 

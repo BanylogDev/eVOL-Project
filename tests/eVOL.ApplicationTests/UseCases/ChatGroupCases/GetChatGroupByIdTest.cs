@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
-using Moq;
+﻿using Moq;
 using eVOL.Domain.RepositoriesInteraces;
 using Microsoft.Extensions.Logging;
-using eVOL.Application.UseCases.ChatGroupCases;
 using eVOL.Domain.Entities;
+using eVOL.Application.Features.ChatGroupCases.Queries.GetChatGroupById;
 
 
 namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
@@ -20,9 +14,9 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var chatGroupRepoMock = new Mock<IChatGroupRepository>();
-            var loggerMock = new Mock<ILogger<GetChatGroupByIdUseCase>>();
+            var loggerMock = new Mock<ILogger<GetChatGroupByIdHandler>>();
 
             uowMock.Setup(u => u.ChatGroup).Returns(chatGroupRepoMock.Object);
 
@@ -35,11 +29,11 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
             chatGroupRepoMock.Setup(c => c.GetChatGroupById(1)).ReturnsAsync(fakeChatGroup);
 
-            var sut = new GetChatGroupByIdUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new GetChatGroupByIdHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.ExecuteAsync(1);
+            var result = await sut.Handle(new GetChatGroupByIdQuery(1), CancellationToken.None);
 
             // Assert
 
@@ -54,19 +48,19 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var chatGroupRepoMock = new Mock<IChatGroupRepository>();
-            var loggerMock = new Mock<ILogger<GetChatGroupByIdUseCase>>();
+            var loggerMock = new Mock<ILogger<GetChatGroupByIdHandler>>();
 
             uowMock.Setup(u => u.ChatGroup).Returns(chatGroupRepoMock.Object);
 
             chatGroupRepoMock.Setup(c => c.GetChatGroupById(1)).ReturnsAsync((ChatGroup?)null);
 
-            var sut = new GetChatGroupByIdUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new GetChatGroupByIdHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.ExecuteAsync(1);
+            var result = await sut.Handle(new GetChatGroupByIdQuery(1), CancellationToken.None);
 
             // Assert
 

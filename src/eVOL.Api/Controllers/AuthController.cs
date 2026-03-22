@@ -1,10 +1,10 @@
 ﻿using eVOL.Application.DTOs;
 using eVOL.Application.DTOs.Requests;
-using eVOL.Application.ServicesInterfaces;
-using eVOL.Application.UseCases.UCInterfaces.IUserCases;
-using eVOL.Domain.RepositoriesInteraces;
+using eVOL.Application.Features.UserCases.Commands.LoginUser;
+using eVOL.Application.Features.UserCases.Commands.RefreshToken;
+using eVOL.Application.Features.UserCases.Commands.RegisterUser;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
 
 namespace BankApi_Clean_Architecture.Controllers
 {
@@ -12,31 +12,21 @@ namespace BankApi_Clean_Architecture.Controllers
     [Route("api/auth")]
     public class AuthController : ControllerBase
     {
-        private readonly ILoginUserUseCase _loginUserUseCase;
-        private readonly IRegisterUserUseCase _registerUserUseCase;
-        private readonly IRefreshTokenUseCase _refreshTokenUseCase;
+        private readonly ISender _sender;
 
-        public AuthController(ILoginUserUseCase loginUserUseCase, IRegisterUserUseCase registerUserUseCase, IRefreshTokenUseCase refreshTokenUseCase)
+        public AuthController(ISender sender)
         {
-            _loginUserUseCase = loginUserUseCase;
-            _registerUserUseCase = registerUserUseCase;
-            _refreshTokenUseCase = refreshTokenUseCase;
+            _sender = sender;
         }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDTO dto)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var user = await _registerUserUseCase.ExecuteAsync(dto);
+            var user = await _sender.Send(new RegisterUserCommand(dto));
 
-            if (user == null)
-            {
-                return BadRequest();
-            }
+            if (user == null) return BadRequest("Something went wrong");
 
             return Ok(new { message = "Registration successful", user.Name, user.Email });
         }
@@ -44,10 +34,10 @@ namespace BankApi_Clean_Architecture.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDTO dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var user = await _loginUserUseCase.ExecuteAsync(dto);
+            var user = await _sender.Send(new LoginUserCommand(dto));
+
             if (user == null) return Unauthorized("Invalid username or password");
 
             return Ok(new { message = "Login successful", user.UserId, user.Name, user.Email, user.AccessToken, user.RefreshToken });
@@ -56,10 +46,9 @@ namespace BankApi_Clean_Architecture.Controllers
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh([FromBody] TokenDTO tokenDto)
         {
-            if (tokenDto is null)
-                return BadRequest("Invalid client request");
+            if (tokenDto is null) return BadRequest("Invalid client request");
 
-            var tokens = await _refreshTokenUseCase.ExecuteAsync(tokenDto);
+            var tokens = await _sender.Send(new RefreshTokenCommand(tokenDto));
 
             return Ok(new
             {

@@ -19,12 +19,17 @@ namespace eVOL.Infrastructure.Services
 
         public async Task SetAsync(string key, string value, TimeSpan? expiry = null)
         {
-            await _db.StringSetAsync(key, value, expiry);
+            Expiration redisExpiry = expiry.HasValue
+                ? (Expiration)expiry.Value
+                : Expiration.Persist;
+
+            await _db.StringSetAsync(key, value, redisExpiry);
         }
 
         public async Task<string?> GetAsync(string key)
         {
-            return await _db.StringGetAsync(key);
+            var value = await _db.StringGetAsync(key);
+            return value.HasValue ? value.ToString() : null;
         }
     }
 }

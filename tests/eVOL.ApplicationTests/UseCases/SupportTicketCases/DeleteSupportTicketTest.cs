@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
-using Moq;
+﻿using Moq;
 using eVOL.Domain.RepositoriesInteraces;
-using eVOL.Application.UseCases.SupportTicketCases;
 using Microsoft.Extensions.Logging;
 using eVOL.Domain.Entities;
+using eVOL.Application.Features.SupportTicketCases.Commands.DeleteSupportTicket;
 
 
 namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
@@ -20,9 +14,9 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
         public async Task DeleteSupportTicket_DeleteSupportTicketSuccessfully_ReturnSupportTicket()
         {
             // Arrange
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var supportTicketRepoMock = new Mock<ISupportTicketRepository>();
-            var loggerMock = new Mock<ILogger<DeleteSupportTicketUseCase>>();
+            var loggerMock = new Mock<ILogger<DeleteSupportTicketHandler>>();
 
             uowMock.Setup(u => u.SupportTicket).Returns(supportTicketRepoMock.Object);
 
@@ -41,11 +35,11 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
             supportTicketRepoMock.Setup(r => r.GetSupportTicketById(1)).ReturnsAsync(fakeSupportTicket);
             supportTicketRepoMock.Setup(r => r.DeleteSupportTicket(fakeSupportTicket));
 
-            var sut = new DeleteSupportTicketUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new DeleteSupportTicketHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.ExecuteAsync(1);
+            var result = await sut.Handle(new DeleteSupportTicketCommand(1), CancellationToken.None);
 
             // Assert
 
@@ -66,9 +60,9 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var supportTicketRepoMock = new Mock<ISupportTicketRepository>();
-            var loggerMock = new Mock<ILogger<DeleteSupportTicketUseCase>>();
+            var loggerMock = new Mock<ILogger<DeleteSupportTicketHandler>>();
 
             uowMock.Setup(u => u.SupportTicket).Returns(supportTicketRepoMock.Object);
 
@@ -78,11 +72,11 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 
             supportTicketRepoMock.Setup(r => r.GetSupportTicketById(1)).ReturnsAsync((SupportTicket?)null);
 
-            var sut = new DeleteSupportTicketUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new DeleteSupportTicketHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.ExecuteAsync(1);
+            var result = await sut.Handle(new DeleteSupportTicketCommand(1), CancellationToken.None);
 
             // Assert
 
@@ -100,9 +94,9 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var supportTicketRepoMock = new Mock<ISupportTicketRepository>();
-            var loggerMock = new Mock<ILogger<DeleteSupportTicketUseCase>>();
+            var loggerMock = new Mock<ILogger<DeleteSupportTicketHandler>>();
 
             uowMock.Setup(u => u.SupportTicket).Returns(supportTicketRepoMock.Object);
 
@@ -113,11 +107,11 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
             supportTicketRepoMock.Setup(s => s.GetSupportTicketById(1))
                 .ThrowsAsync(new Exception("Database error"));
 
-            var sut = new DeleteSupportTicketUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new DeleteSupportTicketHandler(uowMock.Object, loggerMock.Object);
 
             // Act & Assert
 
-            await Assert.ThrowsAsync<Exception>(() => sut.ExecuteAsync(1));
+            await Assert.ThrowsAsync<Exception>(async () => await sut.Handle(new DeleteSupportTicketCommand(1), CancellationToken.None));
 
             uowMock.Verify(u => u.BeginTransactionAsync(), Times.Once);
             uowMock.Verify(u => u.CommitAsync(), Times.Never);

@@ -1,8 +1,8 @@
-﻿using eVOL.Application.DTOs;
-using eVOL.Application.UseCases.UCInterfaces.IAdminCases;
+﻿using eVOL.Application.Features.AdminCases.Commands.AdminDeleteUser;
+using eVOL.Application.Features.AdminCases.Queries.AdminGetUser;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
 
 namespace eVOL.API.Controllers
 {
@@ -12,25 +12,16 @@ namespace eVOL.API.Controllers
     public class AdminController : ControllerBase
     {
 
-        private readonly IAdminGetUserUseCase _getUserUseCase;
-        private readonly IAdminDeleteUserUseCase _deleteUserUseCase;
-
-        public AdminController(IAdminGetUserUseCase getUserUseCase, IAdminDeleteUserUseCase deleteUserUseCase)
-        {
-            _getUserUseCase = getUserUseCase;
-            _deleteUserUseCase = deleteUserUseCase;
-        }
+        private readonly ISender _sender;
+        public AdminController(ISender sender) => _sender = sender;
 
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserInfo(int id)
         {
-            var user = await _getUserUseCase.ExecuteAsync(id);
+            var user = await _sender.Send(new AdminGetUserQuery(id));
 
-            if (user == null)
-            {
-                return NotFound();
-            }
+            if (user == null) return NotFound();
 
             return Ok(user);
         }
@@ -38,12 +29,9 @@ namespace eVOL.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id) 
         {
-            var user = await _deleteUserUseCase.ExecuteAsync(id);
+            var user = await _sender.Send(new AdminDeleteUserCommand(id));
 
-            if (user == null)
-            {
-                return NotFound();
-            }
+            if (user == null) return NotFound();
 
             return Ok(user);
         }

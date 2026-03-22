@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
-using Moq;
-using eVOL.Domain.RepositoriesInteraces;
-using Microsoft.Extensions.Logging;
-using eVOL.Application.UseCases.SupportTicketCases;
+﻿using eVOL.Application.Features.SupportTicketCases.Commands.SendSupportTicketMessage;
 using eVOL.Domain.Entities;
-using eVOL.Application.Messaging.Interfaces;
-
+using eVOL.Domain.RepositoriesInteraces;
+using MediatR;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 {
@@ -22,12 +15,12 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
         {
             // Arrange
 
-            var uowMysqlMock = new Mock<IMySqlUnitOfWork>();
+            var uowMysqlMock = new Mock<IPostgreUnitOfWork>();
             var uowMongoMock = new Mock<IMongoUnitOfWork>();
             var supportTicketRepoMock = new Mock<ISupportTicketRepository>();
             var userRepoMock = new Mock<IUserRepository>();
-            var rabbitMqMock = new Mock<IRabbitMqPublisher>();
-            var loggerMock = new Mock<ILogger<SendSupportTicketMessageUseCase>>();
+            var notificationRepoMock = new Mock<IPublisher>();
+            var loggerMock = new Mock<ILogger<SendSupportTicketMessageHandler>>();
 
             uowMysqlMock.Setup(u => u.SupportTicket).Returns(supportTicketRepoMock.Object);
             uowMysqlMock.Setup(u => u.Users).Returns(userRepoMock.Object);
@@ -64,13 +57,17 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
             userRepoMock.Setup(u => u.GetUserById(1))
                 .ReturnsAsync(fakeUser);
 
-            rabbitMqMock.Setup(r => r.PublishAsync(Message));
+            notificationRepoMock
+                .Setup(n => n.Publish(It.IsAny<SendSupportTicketMessageEvent>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
 
-            var sut = new SendSupportTicketMessageUseCase(rabbitMqMock.Object, uowMysqlMock.Object, loggerMock.Object);
+
+
+            var sut = new SendSupportTicketMessageHandler(notificationRepoMock.Object, uowMysqlMock.Object, loggerMock.Object);
 
             // Act
 
-            var (chatMessage, user) = await sut.ExecuteAsync("Test Message", fakeSupportTicket.Name, fakeUser.UserId);
+            var (chatMessage, user) = await sut.Handle(new SendSupportTicketMessageCommand("Test Message", fakeSupportTicket.Name, fakeUser.UserId), CancellationToken.None);
 
             // Assert
 
@@ -89,7 +86,7 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 
             userRepoMock.Verify(u => u.GetUserById(1), Times.Once);
 
-            rabbitMqMock.Verify(r => r.PublishAsync(It.IsAny<ChatMessage>()), Times.Once);
+            notificationRepoMock.Verify(u => u.Publish(It.IsAny<SendSupportTicketMessageEvent>()), Times.Once);
 
         }
 
@@ -99,12 +96,13 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 
             // Arrange
 
-            var uowMysqlMock = new Mock<IMySqlUnitOfWork>();
+            var uowMysqlMock = new Mock<IPostgreUnitOfWork>();
             var uowMongoMock = new Mock<IMongoUnitOfWork>();
             var supportTicketRepoMock = new Mock<ISupportTicketRepository>();
             var userRepoMock = new Mock<IUserRepository>();
+            var notificationRepoMock = new Mock<IPublisher>();
             var rabbitMqMock = new Mock<RabbitMqPublisher>();
-            var loggerMock = new Mock<ILogger<SendSupportTicketMessageUseCase>>();
+            var loggerMock = new Mock<ILogger<SendSupportTicketMessageHandler>>();
 
             uowMysqlMock.Setup(u => u.SupportTicket).Returns(supportTicketRepoMock.Object);
             uowMysqlMock.Setup(u => u.Users).Returns(userRepoMock.Object);
@@ -121,11 +119,11 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
             userRepoMock.Setup(u => u.GetUserById(1))
                 .ReturnsAsync((User?)null);
 
-            var sut = new SendSupportTicketMessageUseCase(rabbitMqMock.Object, uowMysqlMock.Object, loggerMock.Object);
+            var sut = new SendSupportTicketMessageHandler(notificationRepoMock.Object, uowMysqlMock.Object, loggerMock.Object);
 
             // Act
 
-            var (chatMessage, user) = await sut.ExecuteAsync("Test Message", "Test Support Ticket", 1);
+            var (chatMessage, user) = await sut.Handle(new SendSupportTicketMessageCommand("Test Message", "Test Support Ticket", 1), CancellationToken.None);
 
             // Assert
 
@@ -148,12 +146,13 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
         {
             // Arrange
 
-            var uowMysqlMock = new Mock<IMySqlUnitOfWork>();
+            var uowMysqlMock = new Mock<IPostgreUnitOfWork>();
             var uowMongoMock = new Mock<IMongoUnitOfWork>();
             var supportTicketRepoMock = new Mock<ISupportTicketRepository>();
             var userRepoMock = new Mock<IUserRepository>();
+            var notificationRepoMock = new Mock<IPublisher>();
             var rabbitMqMock = new Mock<RabbitMqPublisher>();
-            var loggerMock = new Mock<ILogger<SendSupportTicketMessageUseCase>>();
+            var loggerMock = new Mock<ILogger<SendSupportTicketMessageHandler>>();
 
             uowMysqlMock.Setup(u => u.SupportTicket).Returns(supportTicketRepoMock.Object);
             uowMysqlMock.Setup(u => u.Users).Returns(userRepoMock.Object);
@@ -168,11 +167,11 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
                 .ThrowsAsync(new Exception("Database error"));
 
 
-            var sut = new SendSupportTicketMessageUseCase(rabbitMqMock.Object, uowMysqlMock.Object, loggerMock.Object);
+            var sut = new SendSupportTicketMessageHandler(notificationRepoMock.Object, uowMysqlMock.Object, loggerMock.Object);
 
             // Act & Assert
 
-            await Assert.ThrowsAsync<Exception>(() => sut.ExecuteAsync("Test Message", "Test Support Ticket", 1));
+            await Assert.ThrowsAsync<Exception>(async () => await sut.Handle(new SendSupportTicketMessageCommand("Test Message", "Test Support Ticket", 1), CancellationToken.None));
 
             uowMysqlMock.Verify(u => u.BeginTransactionAsync(), Times.Once);
 

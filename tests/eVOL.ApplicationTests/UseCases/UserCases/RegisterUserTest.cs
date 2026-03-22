@@ -1,18 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
-using Moq;
+﻿using Moq;
 using eVOL.Domain.RepositoriesInteraces;
-using Mapster;
 using Microsoft.Extensions.Logging;
-using eVOL.Application.UseCases.UserCases;
 using eVOL.Application.ServicesInterfaces;
 using eVOL.Domain.Entities;
 using eVOL.Application.DTOs.Requests;
-using eVOL.Application.DTOs.Responses.User;
+using eVOL.Application.Features.UserCases.Commands.RegisterUser;
 
 
 namespace eVOL.ApplicationTests.UseCases.UserCases
@@ -25,11 +17,11 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var authRepoMock = new Mock<IAuthRepository>();
             var passwordHasherMock = new Mock<IPasswordHasher>();
-            var loggerMock = new Mock<ILogger<RegisterUserUseCase>>();
+            var loggerMock = new Mock<ILogger<RegisterUserHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
             uowMock.Setup(u => u.Auth).Returns(authRepoMock.Object);
@@ -67,7 +59,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             passwordHasherMock.Setup(p => p.HashPassword("password")).Returns("hashedPassword");
 
-            var sut = new RegisterUserUseCase(
+            var sut = new RegisterUserHandler(
                 uowMock.Object,
                 passwordHasherMock.Object,
                 loggerMock.Object
@@ -75,7 +67,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             // Act
 
-            var result = await sut.ExecuteAsync(registerDTO);
+            var result = await sut.Handle(new RegisterUserCommand(registerDTO), CancellationToken.None);
 
             // Assert
 
@@ -101,10 +93,10 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
         {
             //Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var passwordHasherMock = new Mock<IPasswordHasher>();
-            var loggerMock = new Mock<ILogger<RegisterUserUseCase>>();
+            var loggerMock = new Mock<ILogger<RegisterUserHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
 
@@ -128,7 +120,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             uowMock.Setup(u => u.Users.GetUserByName(It.IsAny<string>())).ReturnsAsync(new User { });
 
-            var sut = new RegisterUserUseCase(
+            var sut = new RegisterUserHandler(
                 uowMock.Object,
                 passwordHasherMock.Object,
                 loggerMock.Object
@@ -136,7 +128,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             // Act
 
-            var result = await sut.ExecuteAsync(registerDTO);
+            var result = await sut.Handle(new RegisterUserCommand(registerDTO), CancellationToken.None);
 
             // Assert
 
@@ -153,10 +145,10 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
         {
             //Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var passwordHasherMock = new Mock<IPasswordHasher>();
-            var loggerMock = new Mock<ILogger<RegisterUserUseCase>>();
+            var loggerMock = new Mock<ILogger<RegisterUserHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
 
@@ -180,7 +172,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             uowMock.Setup(u => u.Users.GetUserByName(It.IsAny<string>())).ThrowsAsync(new Exception("Database error"));
 
-            var sut = new RegisterUserUseCase(
+            var sut = new RegisterUserHandler(
                 uowMock.Object,
                 passwordHasherMock.Object,
                 loggerMock.Object
@@ -188,7 +180,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             // Act & Assert
 
-            await Assert.ThrowsAsync<Exception>(() => sut.ExecuteAsync(registerDTO));
+            await Assert.ThrowsAsync<Exception>(async () => await sut.Handle(new RegisterUserCommand(registerDTO), CancellationToken.None));
 
             uowMock.Verify(u => u.BeginTransactionAsync(), Times.Once);
             uowMock.Verify(u => u.CommitAsync(), Times.Never);

@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
-using Moq;
-using eVOL.Domain.RepositoriesInteraces;
-using Microsoft.Extensions.Logging;
-using eVOL.Application.UseCases.ChatGroupCases;
-using eVOL.Domain.Entities;
+﻿using eVOL.Application.Features.ChatGroupCases.Commands.SendChatGroupMessage;
 using eVOL.Application.Messaging.Interfaces;
+using eVOL.Domain.Entities;
+using eVOL.Domain.RepositoriesInteraces;
+using MediatR;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 
 namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
@@ -21,12 +16,12 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
         {
             // Arrange
 
-            var uowMysqlMock = new Mock<IMySqlUnitOfWork>();
+            var uowMysqlMock = new Mock<IPostgreUnitOfWork>();
             var uowMongoMock = new Mock<IMongoUnitOfWork>();
             var chatGroupRepoMock = new Mock<IChatGroupRepository>();
             var userRepoMock = new Mock<IUserRepository>();
-            var rabbitMqMock = new Mock<IRabbitMqPublisher>();
-            var loggerMock = new Mock<ILogger<SendChatGroupMessageUseCase>>();
+            var notificationRepoMock = new Mock<IPublisher>();
+            var loggerMock = new Mock<ILogger<SendChatGroupMessageHandler>>();
 
             uowMysqlMock.Setup(u => u.ChatGroup).Returns(chatGroupRepoMock.Object);
             uowMysqlMock.Setup(u => u.Users).Returns(userRepoMock.Object);
@@ -64,13 +59,16 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
             chatGroupRepoMock.Setup(c => c.GetChatGroupByName(It.IsAny<string>()))
                 .ReturnsAsync(fakeChatGroup);
 
-            rabbitMqMock.Setup(r => r.PublishAsync(Message));
+            notificationRepoMock
+                .Setup(n => n.Publish(It.IsAny<SendChatGroupMessageEvent>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
 
-            var sut = new SendChatGroupMessageUseCase(rabbitMqMock.Object, uowMysqlMock.Object, loggerMock.Object);
+
+            var sut = new SendChatGroupMessageHandler(notificationRepoMock.Object, uowMysqlMock.Object, loggerMock.Object);
 
             // Act
 
-            var (chatMessage, user) = await sut.ExecuteAsync("Test Message", "TestGroup", fakeUser.UserId);
+            var (chatMessage, user) = await sut.Handle(new SendChatGroupMessageCommand("Test Message", "TestGroup", fakeUser.UserId), CancellationToken.None);
 
             // Assert
 
@@ -90,7 +88,7 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
             chatGroupRepoMock.Verify(c => c.GetChatGroupByName(It.IsAny<string>()), Times.Once);
 
-            rabbitMqMock.Verify(r => r.PublishAsync(It.IsAny<ChatMessage>()), Times.Once);
+            notificationRepoMock.Verify(c => c.Publish(It.IsAny<SendChatGroupMessageEvent>()), Times.Once);
 
         }
 
@@ -99,12 +97,13 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
         {
             // Arrange
 
-            var uowMysqlMock = new Mock<IMySqlUnitOfWork>();
+            var uowMysqlMock = new Mock<IPostgreUnitOfWork>();
             var uowMongoMock = new Mock<IMongoUnitOfWork>();
             var chatGroupRepoMock = new Mock<IChatGroupRepository>();
             var userRepoMock = new Mock<IUserRepository>();
+            var notificationRepoMock = new Mock<IPublisher>();
             var rabbitMqMock = new Mock<IRabbitMqPublisher>();
-            var loggerMock = new Mock<ILogger<SendChatGroupMessageUseCase>>();
+            var loggerMock = new Mock<ILogger<SendChatGroupMessageHandler>>();
 
             uowMysqlMock.Setup(u => u.ChatGroup).Returns(chatGroupRepoMock.Object);
             uowMysqlMock.Setup(u => u.Users).Returns(userRepoMock.Object);
@@ -127,11 +126,11 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
             chatGroupRepoMock.Setup(c => c.GetChatGroupByName(It.IsAny<string>()))
                 .ReturnsAsync((ChatGroup?)null);
 
-            var sut = new SendChatGroupMessageUseCase(rabbitMqMock.Object, uowMysqlMock.Object, loggerMock.Object);
+            var sut = new SendChatGroupMessageHandler(notificationRepoMock.Object, uowMysqlMock.Object, loggerMock.Object);
 
             // Act
 
-            var (chatMessage, user) = await sut.ExecuteAsync("Test Message", "TestGroup", fakeUser.UserId);
+            var (chatMessage, user) = await sut.Handle(new SendChatGroupMessageCommand("Test Message", "TestGroup", fakeUser.UserId), CancellationToken.None);
 
             // Assert
 
@@ -148,6 +147,8 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
             userRepoMock.Verify(u => u.GetUserById(It.IsAny<int>()), Times.Once);
 
+            notificationRepoMock.Verify(c => c.Publish(It.IsAny<ChatMessage>()), Times.Never);
+
             rabbitMqMock.Verify(r => r.PublishAsync(It.IsAny<ChatMessage>()), Times.Never);
         }
 
@@ -155,12 +156,13 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
         public async Task SendChatGroupMessage_ThrowException_ReturnNothing()
         {
             // Arrange
-            var uowMysqlMock = new Mock<IMySqlUnitOfWork>();
+            var uowMysqlMock = new Mock<IPostgreUnitOfWork>();
             var uowMongoMock = new Mock<IMongoUnitOfWork>();
             var chatGroupRepoMock = new Mock<IChatGroupRepository>();
             var userRepoMock = new Mock<IUserRepository>();
+            var notificationRepoMock = new Mock<IPublisher>();
             var rabbitMqMock = new Mock<IRabbitMqPublisher>();
-            var loggerMock = new Mock<ILogger<SendChatGroupMessageUseCase>>();
+            var loggerMock = new Mock<ILogger<SendChatGroupMessageHandler>>();
 
             uowMysqlMock.Setup(u => u.ChatGroup).Returns(chatGroupRepoMock.Object);
             uowMysqlMock.Setup(u => u.Users).Returns(userRepoMock.Object);
@@ -174,11 +176,11 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
             chatGroupRepoMock.Setup(c => c.GetChatGroupByName(It.IsAny<string>()))
                 .ThrowsAsync(new Exception("Database error"));
 
-            var sut = new SendChatGroupMessageUseCase(rabbitMqMock.Object, uowMysqlMock.Object, loggerMock.Object);
+            var sut = new SendChatGroupMessageHandler(notificationRepoMock.Object, uowMysqlMock.Object, loggerMock.Object);
 
             // Act & Assert
 
-            await Assert.ThrowsAsync<Exception>(() => sut.ExecuteAsync("Test Message", "TestGroup", 1));
+            await Assert.ThrowsAsync<Exception>(async () => await sut.Handle(new SendChatGroupMessageCommand("Test Message", "TestGroup", 1), CancellationToken.None));
 
             uowMysqlMock.Verify(u => u.BeginTransactionAsync(), Times.Once);
 
@@ -189,6 +191,8 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
             chatGroupRepoMock.Verify(c => c.GetChatGroupByName(It.IsAny<string>()), Times.Once);
 
             userRepoMock.Verify(u => u.GetUserById(It.IsAny<int>()), Times.Never);
+
+            notificationRepoMock.Verify(c => c.Publish(It.IsAny<ChatMessage>()), Times.Never);
 
             rabbitMqMock.Verify(r => r.PublishAsync(It.IsAny<ChatMessage>()), Times.Never);
         }

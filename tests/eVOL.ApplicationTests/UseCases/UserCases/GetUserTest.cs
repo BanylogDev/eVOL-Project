@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
-using Moq;
+﻿using Moq;
 using eVOL.Domain.RepositoriesInteraces;
 using Microsoft.Extensions.Logging;
-using eVOL.Application.UseCases.UserCases;
 using eVOL.Domain.Entities;
 using Mapster;
 using eVOL.Application.DTOs.Responses.User;
+using eVOL.Application.Features.UserCases.Queries.GetUser;
 
 namespace eVOL.ApplicationTests.UseCases.UserCases
 {
@@ -21,9 +15,9 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
         {
             //Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
-            var loggerMock = new Mock<ILogger<GetUserUseCase>>();
+            var loggerMock = new Mock<ILogger<GetUserHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
 
@@ -34,11 +28,11 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             userRepoMock.Setup(u => u.GetUserById(1)).ReturnsAsync(fakeUser);
 
-            var sut = new GetUserUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new GetUserHandler(uowMock.Object, loggerMock.Object);
 
             //Act
 
-            var result = await sut.ExecuteAsync(1);
+            var result = await sut.Handle(new GetUserQuery(1), CancellationToken.None);
 
             //Assert
 
@@ -54,19 +48,19 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
         {
             //Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
-            var loggerMock = new Mock<ILogger<GetUserUseCase>>();
+            var loggerMock = new Mock<ILogger<GetUserHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
 
             userRepoMock.Setup(u => u.GetUserById(1)).ReturnsAsync((User?)null);
 
-            var sut = new GetUserUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new GetUserHandler(uowMock.Object, loggerMock.Object);
 
             //Act
 
-            var result = await sut.ExecuteAsync(1);
+            var result = await sut.Handle(new GetUserQuery(1), CancellationToken.None);
 
             //Assert
 

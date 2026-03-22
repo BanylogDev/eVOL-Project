@@ -1,10 +1,12 @@
 ﻿using eVOL.Application.DTOs;
 using eVOL.Application.DTOs.Requests;
-using eVOL.Application.UseCases.UCInterfaces.IChatGroupCases;
-using eVOL.Domain.Entities;
+using eVOL.Application.Features.ChatGroupCases.Commands.CreateChatGroup;
+using eVOL.Application.Features.ChatGroupCases.Commands.DeleteChatGroup;
+using eVOL.Application.Features.ChatGroupCases.Commands.TransferOwnershipOfChatGroup;
+using eVOL.Application.Features.ChatGroupCases.Queries.GetChatGroupById;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
 
 namespace eVOL.API.Controllers
 {
@@ -13,37 +15,22 @@ namespace eVOL.API.Controllers
     [Authorize(Roles = "User,Admin")]
     public class ChatGroupController : ControllerBase
     {
-        private readonly ICreateChatGroupUseCase _createChatGroupUseCase;
-        private readonly IDeleteChatGroupUseCase _deleteChatGroupUseCase;
-        private readonly IGetChatGroupByIdUseCase _getChatGroupByIdUseCase;
-        private readonly ITransferOwnershipOfChatGroupUseCase _transferOwnershipOfChatGroupUseCase;
+        private readonly ISender _sender;
 
-        public ChatGroupController(ICreateChatGroupUseCase createChatGroupUseCase, 
-            IDeleteChatGroupUseCase deleteChatGroupUseCase, 
-            IGetChatGroupByIdUseCase getChatGroupByIdUseCase, 
-            ITransferOwnershipOfChatGroupUseCase transferOwnershipOfChatGroupUseCase)
+        public ChatGroupController(ISender sender)
         {
-            _createChatGroupUseCase = createChatGroupUseCase;
-            _deleteChatGroupUseCase = deleteChatGroupUseCase;
-            _getChatGroupByIdUseCase = getChatGroupByIdUseCase;
-            _transferOwnershipOfChatGroupUseCase = transferOwnershipOfChatGroupUseCase;
-        }
+            _sender = sender;
+        }   
 
         [HttpPost("create")]
         public async Task<IActionResult> CreateChatGroup(ChatGroupDTO dto)
         {
 
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var chatGroup = await _createChatGroupUseCase.ExecuteAsync(dto);
+            var chatGroup = await _sender.Send(new CreateChatGroupCommand(dto));
 
-            if (chatGroup == null)
-            {
-                return BadRequest();
-            }
+            if (chatGroup == null) return BadRequest("Something went wrong.");
 
             return Ok(chatGroup);
         }
@@ -51,12 +38,9 @@ namespace eVOL.API.Controllers
         [HttpDelete("delete")]
         public async Task<IActionResult> DeleteChatGroup([FromBody] DeleteChatGroupDTO dto)
         {
-            var chatGroup = await _deleteChatGroupUseCase.ExecuteAsync(dto.ChatGroupId, dto.ChatGroupOwnerId);
+            var chatGroup = await _sender.Send(new DeleteChatGroupCommand(dto));
 
-            if (chatGroup == null)
-            {
-                return NotFound();
-            }
+            if (chatGroup == null) return NotFound();
 
             return Ok(chatGroup);
         }
@@ -64,12 +48,9 @@ namespace eVOL.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetChatGroupById(int id)
         {
-            var chatGroup = await _getChatGroupByIdUseCase.ExecuteAsync(id);
+            var chatGroup = await _sender.Send(new GetChatGroupByIdQuery(id));
 
-            if (chatGroup == null)
-            {
-                return NotFound();
-            }
+            if (chatGroup == null) return NotFound();
 
             return Ok(chatGroup);
         }
@@ -77,17 +58,11 @@ namespace eVOL.API.Controllers
         [HttpPut("transfer")]
         public async Task<IActionResult> TransferOwnershipOfChatGroup(TransferOwnershipOfCGDTO dto)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var chatGroup = await _transferOwnershipOfChatGroupUseCase.ExecuteAsync(dto.CurrentOwnerId, dto.NewOwnerId, dto.ChatGroupId);
+            var chatGroup = await _sender.Send(new TransferOwnershipOfChatGroupCommand(dto));
 
-            if (chatGroup == null)
-            {
-                return NotFound();
-            }
+            if (chatGroup == null) return NotFound("Something went wrong");
 
             return Ok(chatGroup);
 

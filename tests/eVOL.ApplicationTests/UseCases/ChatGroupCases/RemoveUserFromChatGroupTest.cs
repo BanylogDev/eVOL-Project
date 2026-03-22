@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
-using Moq;
+﻿using Moq;
 using eVOL.Domain.RepositoriesInteraces;
 using Microsoft.Extensions.Logging;
-using eVOL.Application.UseCases.ChatGroupCases;
 using eVOL.Domain.Entities;
+using eVOL.Application.Features.ChatGroupCases.Commands.RemoveUserFromChatGroup;
 
 namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 {
@@ -19,10 +13,10 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var chatGroupRepoMock = new Mock<IChatGroupRepository>();
-            var loggerMock = new Mock<ILogger<RemoveUserFromChatGroupUseCase>>();
+            var loggerMock = new Mock<ILogger<RemoveUserFromChatGroupHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
             uowMock.Setup(u => u.ChatGroup).Returns(chatGroupRepoMock.Object);
@@ -49,11 +43,11 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
             chatGroupRepoMock.Setup(c => c.GetChatGroupByName(It.IsAny<string>())).ReturnsAsync(fakeChatGroup);
 
-            var sut = new RemoveUserFromChatGroupUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new RemoveUserFromChatGroupHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.ExecuteAsync(fakeUser.UserId, "TestGroup");
+            var result = await sut.Handle(new RemoveUserFromChatGroupCommand(fakeUser.UserId, "TestGroup"), CancellationToken.None);
 
             // Assert
 
@@ -73,10 +67,10 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
         public async Task RemoveUserFromChatGroup_UserNotInTheChatGroup_ReturnsNull()
         {
             // Arrange
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var chatGroupRepoMock = new Mock<IChatGroupRepository>();
-            var loggerMock = new Mock<ILogger<RemoveUserFromChatGroupUseCase>>();
+            var loggerMock = new Mock<ILogger<RemoveUserFromChatGroupHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
             uowMock.Setup(u => u.ChatGroup).Returns(chatGroupRepoMock.Object);
@@ -102,11 +96,11 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
             chatGroupRepoMock.Setup(c => c.GetChatGroupByName(It.IsAny<string>())).ReturnsAsync(fakeChatGroup);
 
-            var sut = new RemoveUserFromChatGroupUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new RemoveUserFromChatGroupHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.ExecuteAsync(fakeUser.UserId, "TestGroup");
+            var result = await sut.Handle(new RemoveUserFromChatGroupCommand(fakeUser.UserId, "TestGroup"), CancellationToken.None);
 
             // Assert
 
@@ -126,10 +120,10 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var chatGroupRepoMock = new Mock<IChatGroupRepository>();
-            var loggerMock = new Mock<ILogger<RemoveUserFromChatGroupUseCase>>();
+            var loggerMock = new Mock<ILogger<RemoveUserFromChatGroupHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
             uowMock.Setup(u => u.ChatGroup).Returns(chatGroupRepoMock.Object);
@@ -156,11 +150,11 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
             chatGroupRepoMock.Setup(c => c.GetChatGroupByName(It.IsAny<string>())).ReturnsAsync(fakeChatGroup);
 
-            var sut = new RemoveUserFromChatGroupUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new RemoveUserFromChatGroupHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.ExecuteAsync(fakeUser.UserId, "TestGroup");
+            var result = await sut.Handle(new RemoveUserFromChatGroupCommand(fakeUser.UserId, "TestGroup"), CancellationToken.None);
 
             // Assert
 
@@ -181,10 +175,10 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var chatGroupRepoMock = new Mock<IChatGroupRepository>();
-            var loggerMock = new Mock<ILogger<RemoveUserFromChatGroupUseCase>>();
+            var loggerMock = new Mock<ILogger<RemoveUserFromChatGroupHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
             uowMock.Setup(u => u.ChatGroup).Returns(chatGroupRepoMock.Object);
@@ -195,13 +189,13 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
             userRepoMock.Setup(u => u.GetUserById(It.IsAny<int>())).ThrowsAsync(new Exception("Database error"));
 
-            var sut = new RemoveUserFromChatGroupUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new RemoveUserFromChatGroupHandler(uowMock.Object, loggerMock.Object);
 
             // Act & Assert
 
             await Assert.ThrowsAsync<Exception>(async () =>
             {
-                await sut.ExecuteAsync(1, "TestGroup");
+                await sut.Handle(new RemoveUserFromChatGroupCommand(1, "TestGroup"), CancellationToken.None);
             });
 
             uowMock.Verify(u => u.BeginTransactionAsync(), Times.Once);

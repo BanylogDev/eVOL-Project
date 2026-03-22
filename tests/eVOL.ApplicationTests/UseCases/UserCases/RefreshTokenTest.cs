@@ -1,17 +1,11 @@
 ﻿using eVOL.Domain.RepositoriesInteraces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
 using Moq;
 using eVOL.Application.ServicesInterfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using eVOL.Application.UseCases.UserCases;
 using eVOL.Domain.Entities;
 using eVOL.Application.DTOs.Requests;
+using eVOL.Application.Features.UserCases.Commands.RefreshToken;
 
 
 namespace eVOL.ApplicationTests.UseCases.UserCases
@@ -23,11 +17,11 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var jwtServiceMock = new Mock<IJwtService>();
             var configMock = new Mock<IConfiguration>();
-            var loggerMock = new Mock<ILogger<RefreshTokenUseCase>>();
+            var loggerMock = new Mock<ILogger<RefreshTokenHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
 
@@ -54,7 +48,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             jwtServiceMock.Setup(j => j.GenerateJwtToken(fakeUser, It.IsAny<IConfiguration>())).Returns("newAccessToken");
 
-            var sut = new RefreshTokenUseCase(jwtServiceMock.Object, uowMock.Object, configMock.Object, loggerMock.Object);
+            var sut = new RefreshTokenHandler(jwtServiceMock.Object, uowMock.Object, configMock.Object, loggerMock.Object);
 
             var tokenDto = new TokenDTO
             {
@@ -64,7 +58,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             // Act
 
-            var result = await sut.ExecuteAsync(tokenDto);
+            var result = await sut.Handle(new RefreshTokenCommand(tokenDto), CancellationToken.None);
 
             // Assert
 
@@ -83,10 +77,10 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var jwtServiceMock = new Mock<IJwtService>();
             var configMock = new Mock<IConfiguration>();
-            var loggerMock = new Mock<ILogger<RefreshTokenUseCase>>();
+            var loggerMock = new Mock<ILogger<RefreshTokenHandler>>();
 
             uowMock.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
             uowMock.Setup(u => u.CommitAsync()).Returns(Task.CompletedTask);
@@ -95,7 +89,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
             jwtServiceMock.Setup(j => j.GetPrincipalFromExpiredToken("expiredAccessToken", It.IsAny<IConfiguration>()))
                 .Returns((System.Security.Claims.ClaimsPrincipal?)null);
 
-            var sut = new RefreshTokenUseCase(jwtServiceMock.Object, uowMock.Object, configMock.Object, loggerMock.Object);
+            var sut = new RefreshTokenHandler(jwtServiceMock.Object, uowMock.Object, configMock.Object, loggerMock.Object);
 
             var tokenDto = new TokenDTO
             {
@@ -105,7 +99,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             // Act
 
-            var result = await sut.ExecuteAsync(tokenDto);
+            var result = await sut.Handle(new RefreshTokenCommand(tokenDto), CancellationToken.None);
 
             // Assert
 
@@ -119,11 +113,11 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var authRepoMock = new Mock<IAuthRepository>();
             var jwtServiceMock = new Mock<IJwtService>();
             var configMock = new Mock<IConfiguration>();
-            var loggerMock = new Mock<ILogger<RefreshTokenUseCase>>();
+            var loggerMock = new Mock<ILogger<RefreshTokenHandler>>();
 
             uowMock.Setup(u => u.Auth).Returns(authRepoMock.Object);
             uowMock.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
@@ -133,7 +127,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
             jwtServiceMock.Setup(j => j.GetPrincipalFromExpiredToken("expiredAccessToken", It.IsAny<IConfiguration>()))
                 .Throws(new Exception("Test exception"));
 
-            var sut = new RefreshTokenUseCase(jwtServiceMock.Object, uowMock.Object, configMock.Object, loggerMock.Object);
+            var sut = new RefreshTokenHandler(jwtServiceMock.Object, uowMock.Object, configMock.Object, loggerMock.Object);
 
             var tokenDto = new TokenDTO
             {
@@ -143,7 +137,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             // Act & Assert
 
-            await Assert.ThrowsAsync<Exception>(() => sut.ExecuteAsync(tokenDto));
+            await Assert.ThrowsAsync<Exception>(async () => await sut.Handle(new RefreshTokenCommand(tokenDto), CancellationToken.None));
 
             uowMock.Verify(u => u.BeginTransactionAsync(), Times.Once);
             uowMock.Verify(u => u.RollbackAsync(), Times.Once);

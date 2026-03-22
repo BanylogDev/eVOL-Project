@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
-using Moq;
+﻿using Moq;
 using eVOL.Domain.RepositoriesInteraces;
 using Microsoft.Extensions.Logging;
-using eVOL.Application.UseCases.ChatGroupCases;
 using eVOL.Domain.Entities;
+using eVOL.Application.Features.ChatGroupCases.Commands.TransferOwnershipOfChatGroup;
+using eVOL.Application.DTOs.Requests;
 
 
 namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
@@ -21,10 +16,10 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var chatGroupRepoMock = new Mock<IChatGroupRepository>();
             var userRepoMock = new Mock<IUserRepository>();
-            var loggerMock = new Mock<ILogger<TransferOwnershipOfChatGroupUseCase>>();
+            var loggerMock = new Mock<ILogger<TransferOwnershipOfChatGroupHandler>>();
 
             uowMock.Setup(u => u.ChatGroup).Returns(chatGroupRepoMock.Object);
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
@@ -61,11 +56,12 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
             chatGroupRepoMock.Setup(c => c.GetChatGroupById(1))
                 .ReturnsAsync(fakeChatGroup);
 
-            var sut = new TransferOwnershipOfChatGroupUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new TransferOwnershipOfChatGroupHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.ExecuteAsync(fakeCurrentOwner.UserId, fakeNewOwner.UserId, fakeChatGroup.Id);
+            var result = await sut.Handle(new TransferOwnershipOfChatGroupCommand(
+                new TransferOwnershipOfCGDTO { CurrentOwnerId=fakeCurrentOwner.UserId, NewOwnerId=fakeNewOwner.UserId, ChatGroupId=fakeChatGroup.Id }), CancellationToken.None);
 
             // Assert
 
@@ -88,10 +84,10 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var chatGroupRepoMock = new Mock<IChatGroupRepository>();
             var userRepoMock = new Mock<IUserRepository>();
-            var loggerMock = new Mock<ILogger<TransferOwnershipOfChatGroupUseCase>>();
+            var loggerMock = new Mock<ILogger<TransferOwnershipOfChatGroupHandler>>();
 
             uowMock.Setup(u => u.ChatGroup).Returns(chatGroupRepoMock.Object);
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
@@ -106,11 +102,12 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
             chatGroupRepoMock.Setup(c => c.GetChatGroupById(It.IsAny<int>()))
                 .ReturnsAsync((ChatGroup?)null);
 
-            var sut = new TransferOwnershipOfChatGroupUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new TransferOwnershipOfChatGroupHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.ExecuteAsync(1, 2, 1);
+            var result = await sut.Handle(new TransferOwnershipOfChatGroupCommand(
+                new TransferOwnershipOfCGDTO { CurrentOwnerId = 1, NewOwnerId = 2, ChatGroupId = 1 }), CancellationToken.None);
 
             // Assert
 
@@ -129,10 +126,10 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
         public async Task TransferOwnershipOfChatGroup_CurrentOwnerNotOwner_ReturnNull()
         {
             // Arrange
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var chatGroupRepoMock = new Mock<IChatGroupRepository>();
             var userRepoMock = new Mock<IUserRepository>();
-            var loggerMock = new Mock<ILogger<TransferOwnershipOfChatGroupUseCase>>();
+            var loggerMock = new Mock<ILogger<TransferOwnershipOfChatGroupHandler>>();
 
             uowMock.Setup(u => u.ChatGroup).Returns(chatGroupRepoMock.Object);
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
@@ -169,11 +166,12 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
             chatGroupRepoMock.Setup(c => c.GetChatGroupById(It.IsAny<int>()))
                 .ReturnsAsync(fakeChatGroup);
 
-            var sut = new TransferOwnershipOfChatGroupUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new TransferOwnershipOfChatGroupHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.ExecuteAsync(fakeCurrentOwner.UserId, fakeNewOwner.UserId, fakeChatGroup.Id);
+            var result = await sut.Handle(new TransferOwnershipOfChatGroupCommand(
+                new TransferOwnershipOfCGDTO { CurrentOwnerId = fakeCurrentOwner.UserId, NewOwnerId = fakeNewOwner.UserId, ChatGroupId = fakeChatGroup.Id }), CancellationToken.None);
 
             // Assert
 
@@ -193,10 +191,10 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var chatGroupRepoMock = new Mock<IChatGroupRepository>();
             var userRepoMock = new Mock<IUserRepository>();
-            var loggerMock = new Mock<ILogger<TransferOwnershipOfChatGroupUseCase>>();
+            var loggerMock = new Mock<ILogger<TransferOwnershipOfChatGroupHandler>>();
 
             uowMock.Setup(u => u.ChatGroup).Returns(chatGroupRepoMock.Object);
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
@@ -208,11 +206,12 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
             userRepoMock.Setup(u => u.GetUserById(It.IsAny<int>()))
                 .ThrowsAsync(new Exception("Database error"));
 
-            var sut = new TransferOwnershipOfChatGroupUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new TransferOwnershipOfChatGroupHandler(uowMock.Object, loggerMock.Object);
 
             // Act & Assert
 
-            await Assert.ThrowsAsync<Exception>(() => sut.ExecuteAsync(1, 2, 1));
+            await Assert.ThrowsAsync<Exception>(async () => await sut.Handle(new TransferOwnershipOfChatGroupCommand(
+                new TransferOwnershipOfCGDTO { CurrentOwnerId = 1, NewOwnerId = 2, ChatGroupId = 1 }), CancellationToken.None));
 
             uowMock.Verify(u => u.BeginTransactionAsync(), Times.Once);
             uowMock.Verify(u => u.CommitAsync(), Times.Never);

@@ -2,14 +2,7 @@
 using eVOL.Application.ServicesInterfaces;
 using eVOL.Domain.Entities;
 using eVOL.Infrastructure.Data;
-using eVOL.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
-using StackExchange.Redis;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace eVOL.Infrastructure.Persistence
 {

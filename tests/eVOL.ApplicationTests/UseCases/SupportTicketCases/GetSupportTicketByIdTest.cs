@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
-using Moq;
+﻿using Moq;
 using eVOL.Domain.RepositoriesInteraces;
 using Microsoft.Extensions.Logging;
-using eVOL.Application.UseCases.SupportTicketCases;
 using eVOL.Domain.Entities;
+using eVOL.Application.Features.SupportTicketCases.Queries.GetSupportTicketById;
 
 namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 {
@@ -19,9 +13,9 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var supportTicketRepoMock = new Mock<ISupportTicketRepository>();
-            var loggerMock = new Mock<ILogger<GetSupportTicketByIdUseCase>>();
+            var loggerMock = new Mock<ILogger<GetSupportTicketByIdHandler>>();
 
             uowMock.Setup(u => u.SupportTicket).Returns(supportTicketRepoMock.Object);
 
@@ -32,11 +26,11 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 
             supportTicketRepoMock.Setup(s => s.GetSupportTicketById(1)).ReturnsAsync(fakeSupportTicket);
 
-            var sut = new GetSupportTicketByIdUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new GetSupportTicketByIdHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.ExecuteAsync(1);
+            var result = await sut.Handle(new GetSupportTicketByIdQuery(1), CancellationToken.None);
 
             // Assert
 
@@ -51,9 +45,9 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var supportTicketRepoMock = new Mock<ISupportTicketRepository>();
-            var loggerMock = new Mock<ILogger<GetSupportTicketByIdUseCase>>();
+            var loggerMock = new Mock<ILogger<GetSupportTicketByIdHandler>>();
 
             uowMock.Setup(u => u.SupportTicket).Returns(supportTicketRepoMock.Object);
 
@@ -64,11 +58,11 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 
             supportTicketRepoMock.Setup(s => s.GetSupportTicketById(1)).ReturnsAsync((SupportTicket?)null);
 
-            var sut = new GetSupportTicketByIdUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new GetSupportTicketByIdHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.ExecuteAsync(1);
+            var result = await sut.Handle(new GetSupportTicketByIdQuery(1), CancellationToken.None);
 
             // Assert
 

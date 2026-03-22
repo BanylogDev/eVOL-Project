@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
-using Moq;
+﻿using Moq;
 using eVOL.Domain.RepositoriesInteraces;
 using Microsoft.Extensions.Logging;
-using eVOL.Application.UseCases.ChatGroupCases;
 using eVOL.Domain.Entities;
+using eVOL.Application.Features.ChatGroupCases.Commands.LeaveChatGroup;
 
 namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 {
@@ -20,10 +14,10 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var chatGroupRepoMock = new Mock<IChatGroupRepository>();
             var userRepoMock = new Mock<IUserRepository>();
-            var loggerMock = new Mock<ILogger<LeaveChatGroupUseCase>>();
+            var loggerMock = new Mock<ILogger<LeaveChatGroupHandler>>();
 
             uowMock.Setup(u => u.ChatGroup).Returns(chatGroupRepoMock.Object);
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
@@ -54,11 +48,11 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
 
 
-            var sut = new LeaveChatGroupUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new LeaveChatGroupHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.ExecuteAsync(1, "TestGroup");
+            var result = await sut.Handle(new LeaveChatGroupCommand(1, "TestGroup"), CancellationToken.None);
 
             // Assert   
 
@@ -82,10 +76,10 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var chatGroupRepoMock = new Mock<IChatGroupRepository>();
             var userRepoMock = new Mock<IUserRepository>();
-            var loggerMock = new Mock<ILogger<LeaveChatGroupUseCase>>();
+            var loggerMock = new Mock<ILogger<LeaveChatGroupHandler>>();
 
             uowMock.Setup(u => u.ChatGroup).Returns(chatGroupRepoMock.Object);
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
@@ -117,11 +111,11 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
             chatGroupRepoMock.Setup(c => c.DeleteChatGroup(fakeChatGroup))
                 .Returns(fakeChatGroup);
 
-            var sut = new LeaveChatGroupUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new LeaveChatGroupHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.ExecuteAsync(1, "TestGroup");
+            var result = await sut.Handle(new LeaveChatGroupCommand(1, "TestGroup"), CancellationToken.None);
 
             // Assert   
 
@@ -144,10 +138,10 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var chatGroupRepoMock = new Mock<IChatGroupRepository>();
             var userRepoMock = new Mock<IUserRepository>();
-            var loggerMock = new Mock<ILogger<LeaveChatGroupUseCase>>();
+            var loggerMock = new Mock<ILogger<LeaveChatGroupHandler>>();
 
             uowMock.Setup(u => u.ChatGroup).Returns(chatGroupRepoMock.Object);
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
@@ -162,11 +156,11 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
             chatGroupRepoMock.Setup(c => c.GetChatGroupByName("TestGroup"))
                 .ReturnsAsync((ChatGroup?)null);
 
-            var sut = new LeaveChatGroupUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new LeaveChatGroupHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.ExecuteAsync(1, "TestGroup");
+            var result = await sut.Handle(new LeaveChatGroupCommand(1, "TestGroup"), CancellationToken.None);
 
             // Assert   
 
@@ -187,10 +181,10 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var chatGroupRepoMock = new Mock<IChatGroupRepository>();
             var userRepoMock = new Mock<IUserRepository>();
-            var loggerMock = new Mock<ILogger<LeaveChatGroupUseCase>>();
+            var loggerMock = new Mock<ILogger<LeaveChatGroupHandler>>();
 
             uowMock.Setup(u => u.ChatGroup).Returns(chatGroupRepoMock.Object);
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
@@ -219,11 +213,11 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
             chatGroupRepoMock.Setup(c => c.GetChatGroupByName("TestGroup"))
                 .ReturnsAsync(fakeChatGroup);
 
-            var sut = new LeaveChatGroupUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new LeaveChatGroupHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.ExecuteAsync(1, "TestGroup");
+            var result = await sut.Handle(new LeaveChatGroupCommand(1, "TestGroup"), CancellationToken.None);
 
             // Assert   
 
@@ -244,10 +238,10 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var chatGroupRepoMock = new Mock<IChatGroupRepository>();
             var userRepoMock = new Mock<IUserRepository>();
-            var loggerMock = new Mock<ILogger<LeaveChatGroupUseCase>>();
+            var loggerMock = new Mock<ILogger<LeaveChatGroupHandler>>();
 
             uowMock.Setup(u => u.ChatGroup).Returns(chatGroupRepoMock.Object);
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
@@ -259,11 +253,11 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
             userRepoMock.Setup(u => u.GetUserById(1))
                 .ThrowsAsync(new Exception("Database error"));
 
-            var sut = new LeaveChatGroupUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new LeaveChatGroupHandler(uowMock.Object, loggerMock.Object);
 
             // Act & Assert
 
-            await Assert.ThrowsAsync<Exception>(() => sut.ExecuteAsync(1, "TestGroup"));
+            await Assert.ThrowsAsync<Exception>(async () => await sut.Handle(new LeaveChatGroupCommand(1, "TestGroup"), CancellationToken.None));
 
             uowMock.Verify(u => u.BeginTransactionAsync(), Times.Once);
             uowMock.Verify(u => u.CommitAsync(), Times.Never);

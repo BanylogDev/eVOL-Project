@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace eVOL.Application.DTOs.Responses.User
+﻿namespace eVOL.Application.DTOs.Responses.User
 {
     public sealed class RegisterUserResponse : BaseUserResponse
     {   

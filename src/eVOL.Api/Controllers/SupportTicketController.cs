@@ -1,8 +1,12 @@
 ﻿using eVOL.Application.DTOs.Requests;
-using eVOL.Application.UseCases.UCInterfaces.ISupportTicketCases;
+using eVOL.Application.Features.SupportTicketCases.Commands.ClaimSupportTicket;
+using eVOL.Application.Features.SupportTicketCases.Commands.CreateSupportTicket;
+using eVOL.Application.Features.SupportTicketCases.Commands.DeleteSupportTicket;
+using eVOL.Application.Features.SupportTicketCases.Commands.UnClaimSupportTicket;
+using eVOL.Application.Features.SupportTicketCases.Queries.GetSupportTicketById;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
 
 namespace eVOL.API.Controllers
 {
@@ -11,19 +15,11 @@ namespace eVOL.API.Controllers
     [Authorize(Roles = "User,Admin")]
     public class SupportTicketController : ControllerBase
     {
-        private readonly ICreateSupportTicketUseCase _createSupportTicketUseCase;
-        private readonly IDeleteSupportTicketUseCase _deleteSupportTicketUseCase;
-        private readonly IGetSupportTicketByIdUseCase _getSupportTicketByIdUseCase;
-        private readonly IClaimSupportTicketUseCase _claimSupportTicketUseCase;
-        private readonly IUnClaimSupportTicketUseCase _unClaimSupportTicketUseCase;
+        private readonly ISender _sender;
 
-        public SupportTicketController(ICreateSupportTicketUseCase createSupportTicketUseCase, IDeleteSupportTicketUseCase deleteSupportTicketUseCase, IGetSupportTicketByIdUseCase getSupportTicketByIdUseCase, IClaimSupportTicketUseCase claimSupportTicketUseCase, IUnClaimSupportTicketUseCase unClaimSupportTicketUseCase)
+        public SupportTicketController(ISender sender)
         {
-            _createSupportTicketUseCase = createSupportTicketUseCase;
-            _deleteSupportTicketUseCase = deleteSupportTicketUseCase;
-            _getSupportTicketByIdUseCase = getSupportTicketByIdUseCase;
-            _claimSupportTicketUseCase = claimSupportTicketUseCase;
-            _unClaimSupportTicketUseCase = unClaimSupportTicketUseCase;
+            _sender = sender;
         }
 
 
@@ -31,17 +27,11 @@ namespace eVOL.API.Controllers
         public async Task<IActionResult> CreateSupportTicket(SupportTicketDTO dto)
         {
 
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var supportTicket = await _createSupportTicketUseCase.ExecuteAsync(dto);
+            var supportTicket = await _sender.Send(new CreateSupportTicketCommand(dto));
 
-            if (supportTicket == null)
-            {
-                return BadRequest();
-            }
+            if (supportTicket == null) return BadRequest("Something went wrong");
 
             return Ok(supportTicket);
         }
@@ -49,12 +39,9 @@ namespace eVOL.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteSupportTicket(int id)
         {
-            var supportTicket = await _deleteSupportTicketUseCase.ExecuteAsync(id);
+            var supportTicket = await _sender.Send(new DeleteSupportTicketCommand(id));
 
-            if (supportTicket == null)
-            {
-                return NotFound();
-            }
+            if (supportTicket == null) return NotFound("Something went wrong");
 
             return Ok(supportTicket);
         }
@@ -62,12 +49,9 @@ namespace eVOL.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetSupportTicketById(int id)
         {
-            var supportTicket = await _getSupportTicketByIdUseCase.ExecuteAsync(id);
+            var supportTicket = await _sender.Send(new GetSupportTicketByIdQuery(id));
 
-            if (supportTicket == null)
-            {
-                return NotFound();
-            }
+            if (supportTicket == null) return NotFound("Support ticket wasnt found");
 
             return Ok(supportTicket);
         }
@@ -76,17 +60,11 @@ namespace eVOL.API.Controllers
         public async Task<IActionResult> ClaimSupportTicket([FromBody] ClaimSupportTicketDTO dto)
         {
 
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var user = await _claimSupportTicketUseCase.ExecuteAsync(dto);
+            var user = await _sender.Send(new ClaimSupportTicketCommand(dto));
 
-            if (user == null)
-            {
-                return NotFound();
-            }
+            if (user == null) return NotFound("Something went wrong");
 
             return Ok(user);
         }
@@ -94,17 +72,11 @@ namespace eVOL.API.Controllers
         [HttpDelete("unclaim")]
         public async Task<IActionResult> UnClaimSupportTicket([FromBody] ClaimSupportTicketDTO dto)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var user = await _unClaimSupportTicketUseCase.ExecuteAsync(dto);
+            var user = await _sender.Send(new UnClaimSupportTicketCommand(dto)); 
 
-            if (user == null)
-            {
-                return NotFound();
-            }
+            if (user == null) return NotFound("Something went wrong");
 
             return Ok(user);
         }

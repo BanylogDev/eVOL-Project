@@ -78,8 +78,7 @@ namespace eVOL.Infrastructure.Persistence.Configurations
                      .HasColumnType("decimal(18,2)");
 
                 money.Property(m => m.Currency)
-                     .IsRequired()
-                     .HasMaxLength(3);
+                     .IsRequired();
 
                 money.ToTable("Users"); // Set To Table
             });

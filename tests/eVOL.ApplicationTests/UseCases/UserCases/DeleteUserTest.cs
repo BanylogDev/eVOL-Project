@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
-using Moq;
+﻿using Moq;
 using eVOL.Domain.RepositoriesInteraces;
 using eVOL.Application.ServicesInterfaces;
 using Microsoft.Extensions.Logging;
-using eVOL.Application.UseCases.UserCases;
 using eVOL.Domain.Entities;
 using eVOL.Application.DTOs.Requests;
+using eVOL.Application.Features.UserCases.Commands.DeleteUser;
 
 
 namespace eVOL.ApplicationTests.UseCases.UserCases
@@ -22,10 +16,10 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
         {
             //Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var passwordHasherMock = new Mock<IPasswordHasher>();
-            var loggerMock = new Mock<ILogger<DeleteUserUseCase>>();
+            var loggerMock = new Mock<ILogger<DeleteUserHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
             uowMock.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
@@ -50,11 +44,11 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             passwordHasherMock.Setup(p => p.VerifyPassword(fakeDeleteAccountDTO.Password, fakeUser.Password)).Returns(true);
 
-            var sut = new DeleteUserUseCase(uowMock.Object, passwordHasherMock.Object, loggerMock.Object);
+            var sut = new DeleteUserHandler(uowMock.Object, passwordHasherMock.Object, loggerMock.Object);
 
             //Act
 
-            var result = sut.ExecuteAsync(fakeDeleteAccountDTO);
+            var result = sut.Handle(new DeleteUserCommand(fakeDeleteAccountDTO), CancellationToken.None);
 
             //Assert
 
@@ -77,10 +71,10 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
         {
             //Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var passwordHasherMock = new Mock<IPasswordHasher>();
-            var loggerMock = new Mock<ILogger<DeleteUserUseCase>>();
+            var loggerMock = new Mock<ILogger<DeleteUserHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
             uowMock.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
@@ -96,11 +90,11 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             userRepoMock.Setup(u => u.GetUserById(1)).ReturnsAsync((User?)null);
 
-            var sut = new DeleteUserUseCase(uowMock.Object, passwordHasherMock.Object, loggerMock.Object);
+            var sut = new DeleteUserHandler(uowMock.Object, passwordHasherMock.Object, loggerMock.Object);
 
             //Act
 
-            var result = await  sut.ExecuteAsync(fakeDeleteAccountDTO);
+            var result = await sut.Handle(new DeleteUserCommand(fakeDeleteAccountDTO), CancellationToken.None);
 
             //Assert
 
@@ -118,10 +112,10 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
         {
             //Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var passwordHasherMock = new Mock<IPasswordHasher>();
-            var loggerMock = new Mock<ILogger<DeleteUserUseCase>>();
+            var loggerMock = new Mock<ILogger<DeleteUserHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
             uowMock.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
@@ -137,11 +131,11 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             userRepoMock.Setup(u => u.GetUserById(1)).ThrowsAsync(new Exception("Database error"));
 
-            var sut = new DeleteUserUseCase(uowMock.Object, passwordHasherMock.Object, loggerMock.Object);
+            var sut = new DeleteUserHandler(uowMock.Object, passwordHasherMock.Object, loggerMock.Object);
 
             //Act & Assert
 
-            await Assert.ThrowsAsync<Exception>(() => sut.ExecuteAsync(fakeDeleteAccountDTO));
+            await Assert.ThrowsAsync<Exception>(async () => await sut.Handle(new DeleteUserCommand(fakeDeleteAccountDTO), CancellationToken.None));
 
             uowMock.Verify(u => u.BeginTransactionAsync(), Times.Once);
             uowMock.Verify(u => u.CommitAsync(), Times.Never);

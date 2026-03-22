@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
-using Moq;
+﻿using Moq;
 using eVOL.Domain.RepositoriesInteraces;
 using Microsoft.Extensions.Logging;
-using eVOL.Application.UseCases.SupportTicketCases;
 using eVOL.Domain.Entities;
 using eVOL.Application.DTOs.Requests;
+using eVOL.Application.Features.SupportTicketCases.Commands.UnClaimSupportTicket;
 
 
 namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
@@ -22,10 +16,10 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var supportTicketRepoMock = new Mock<ISupportTicketRepository>();
-            var loggerMock = new Mock<ILogger<UnClaimSupportTicketUseCase>>();
+            var loggerMock = new Mock<ILogger<UnClaimSupportTicketHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
             uowMock.Setup(u => u.SupportTicket).Returns(supportTicketRepoMock.Object);
@@ -52,15 +46,15 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 
             supportTicketRepoMock.Setup(r => r.GetSupportTicketById(It.IsAny<int>())).ReturnsAsync(fakeSupportTicket);
 
-            var sut = new UnClaimSupportTicketUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new UnClaimSupportTicketHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.ExecuteAsync(new ClaimSupportTicketDTO
+            var result = await sut.Handle(new UnClaimSupportTicketCommand(new ClaimSupportTicketDTO
             {
                 Id = 1,
                 OpenedBy = 1
-            });
+            }),CancellationToken.None);
 
             // Assert
 
@@ -83,10 +77,10 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var supportTicketRepoMock = new Mock<ISupportTicketRepository>();
-            var loggerMock = new Mock<ILogger<UnClaimSupportTicketUseCase>>();
+            var loggerMock = new Mock<ILogger<UnClaimSupportTicketHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
             uowMock.Setup(u => u.SupportTicket).Returns(supportTicketRepoMock.Object);
@@ -98,15 +92,15 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
             userRepoMock.Setup(r => r.GetUserById(It.IsAny<int>())).ReturnsAsync((User?)null);
             supportTicketRepoMock.Setup(r => r.GetSupportTicketById(It.IsAny<int>())).ReturnsAsync((SupportTicket?)null);
 
-            var sut = new UnClaimSupportTicketUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new UnClaimSupportTicketHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.ExecuteAsync(new ClaimSupportTicketDTO
+            var result = await sut.Handle(new UnClaimSupportTicketCommand(new ClaimSupportTicketDTO
             {
                 Id = 1,
                 OpenedBy = 1
-            });
+            }), CancellationToken.None);
 
             // Assert
 
@@ -125,10 +119,10 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
         public async Task UnClaimSupportTicket_AlreadyUnClaimed_ReturnNull()
         {
             // Arrange
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var supportTicketRepoMock = new Mock<ISupportTicketRepository>();
-            var loggerMock = new Mock<ILogger<UnClaimSupportTicketUseCase>>();
+            var loggerMock = new Mock<ILogger<UnClaimSupportTicketHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
             uowMock.Setup(u => u.SupportTicket).Returns(supportTicketRepoMock.Object);
@@ -155,15 +149,15 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 
             supportTicketRepoMock.Setup(r => r.GetSupportTicketById(It.IsAny<int>())).ReturnsAsync(fakeSupportTicket);
 
-            var sut = new UnClaimSupportTicketUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new UnClaimSupportTicketHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.ExecuteAsync(new ClaimSupportTicketDTO
+            var result = await sut.Handle(new UnClaimSupportTicketCommand(new ClaimSupportTicketDTO
             {
                 Id = 1,
                 OpenedBy = 1
-            });
+            }), CancellationToken.None);
 
             // Assert
 
@@ -183,10 +177,10 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var supportTicketRepoMock = new Mock<ISupportTicketRepository>();
-            var loggerMock = new Mock<ILogger<UnClaimSupportTicketUseCase>>();
+            var loggerMock = new Mock<ILogger<UnClaimSupportTicketHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
             uowMock.Setup(u => u.SupportTicket).Returns(supportTicketRepoMock.Object);
@@ -197,15 +191,15 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 
             userRepoMock.Setup(r => r.GetUserById(It.IsAny<int>())).ThrowsAsync(new Exception("Database error"));
 
-            var sut = new UnClaimSupportTicketUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new UnClaimSupportTicketHandler(uowMock.Object, loggerMock.Object);
 
             // Act & Assert
 
-            await Assert.ThrowsAsync<Exception>(async () => await sut.ExecuteAsync(new ClaimSupportTicketDTO
+            await Assert.ThrowsAsync<Exception>(async () => await sut.Handle(new UnClaimSupportTicketCommand(new ClaimSupportTicketDTO
             {
                 Id = 1,
                 OpenedBy = 1
-            }));
+            }), CancellationToken.None));
 
             uowMock.Verify(u => u.BeginTransactionAsync(), Times.Once);
             uowMock.Verify(u => u.CommitAsync(), Times.Never);

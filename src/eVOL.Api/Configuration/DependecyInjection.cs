@@ -1,14 +1,6 @@
 ﻿using eVOL.Application.Mappings;
 using eVOL.Application.Messaging.Interfaces;
 using eVOL.Application.ServicesInterfaces;
-using eVOL.Application.UseCases.AdminCases;
-using eVOL.Application.UseCases.ChatGroupCases;
-using eVOL.Application.UseCases.SupportTicketCases;
-using eVOL.Application.UseCases.UCInterfaces.IAdminCases;
-using eVOL.Application.UseCases.UCInterfaces.IChatGroupCases;
-using eVOL.Application.UseCases.UCInterfaces.ISupportTicketCases;
-using eVOL.Application.UseCases.UCInterfaces.IUserCases;
-using eVOL.Application.UseCases.UserCases;
 using eVOL.Domain.RepositoriesInteraces;
 using eVOL.Infrastructure.Data;
 using eVOL.Infrastructure.Persistence;
@@ -17,9 +9,7 @@ using eVOL.Infrastructure.Services;
 using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
 using StackExchange.Redis;
@@ -58,11 +48,8 @@ namespace eVOL.API.Configuration
         public static IServiceCollection AddDatabases(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseMySql(
-                    configuration.GetConnectionString("DefaultConnection"),
-                    Microsoft.EntityFrameworkCore.ServerVersion.AutoDetect(
-                        configuration.GetConnectionString("DefaultConnection")
-                    )
+                options.UseNpgsql(
+                    configuration.GetConnectionString("DefaultConnection")
                 )
             );
 
@@ -147,46 +134,10 @@ namespace eVOL.API.Configuration
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<ICacheService, CacheService>();
             services.AddScoped<IPasswordHasher, PasswordHasher>();
-            services.AddScoped<IAesService, AesService>();
 
             // Messaging
 
             services.AddScoped<IRabbitMqPublisher, RabbitMqPublisher>();
-
-            // Admin Use Cases
-
-            services.AddScoped<IAdminDeleteUserUseCase, AdminDeleteUserUseCase>();
-            services.AddScoped<IAdminGetUserUseCase, AdminGetUserUseCase>();
-
-            // User Use Cases
-
-            services.AddScoped<IDeleteUserUseCase, DeleteUserUseCase>();
-            services.AddScoped<IGetUserUseCase, GetUserUseCase>();
-            services.AddScoped<ILoginUserUseCase, LoginUserUseCase>();
-            services.AddScoped<IRefreshTokenUseCase, RefreshTokenUseCase>();
-            services.AddScoped<IRegisterUserUseCase, RegisterUserUseCase>();
-            services.AddScoped<IUpdateUserUseCase, UpdateUserUseCase>();
-
-            // Chat Group Use Cases
-
-            services.AddScoped<IAddUserToChatGroupUseCase, AddUserToChatGroupUseCase>();
-            services.AddScoped<ICreateChatGroupUseCase, CreateChatGroupUseCase>();
-            services.AddScoped<IDeleteChatGroupUseCase, DeleteChatGroupUseCase>();
-            services.AddScoped<IGetChatGroupByIdUseCase, GetChatGroupByIdUseCase>();
-            services.AddScoped<ILeaveChatGroupUseCase, LeaveChatGroupUseCase>();
-            services.AddScoped<IRemoveUserFromChatGroupUseCase, RemoveUserFromChatGroupUseCase>();
-            services.AddScoped<ISendChatGroupMessageUseCase, SendChatGroupMessageUseCase>();
-            services.AddScoped<ITransferOwnershipOfChatGroupUseCase, TransferOwnershipOfChatGroupUseCase>();
-
-            // Support Ticket Use Cases
-
-            services.AddScoped<IClaimSupportTicketUseCase, ClaimSupportTicketUseCase>();
-            services.AddScoped<ICreateSupportTicketUseCase, CreateSupportTicketUseCase>();
-            services.AddScoped<IDeleteSupportTicketUseCase, DeleteSupportTicketUseCase>();
-            services.AddScoped<IGetSupportTicketByIdUseCase, GetSupportTicketByIdUseCase>();
-            services.AddScoped<ISendSupportTicketMessageUseCase, SendSupportTicketMessageUseCase>();
-            services.AddScoped<IUnClaimSupportTicketUseCase, UnClaimSupportTicketUseCase>();
-
 
             // Repositories
 
@@ -199,7 +150,7 @@ namespace eVOL.API.Configuration
 
             // Unit's Of Work
 
-            services.AddScoped<IMySqlUnitOfWork, MySqlUnitOfWork>();
+            services.AddScoped<IPostgreUnitOfWork, PostgreUnitOfWork>();
             services.AddScoped<IMongoUnitOfWork, MongoUnitOfWork>();
 
 

@@ -1,19 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
-using Moq;
+﻿using Moq;
 using eVOL.Domain.RepositoriesInteraces;
 using eVOL.Application.ServicesInterfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using eVOL.Application.UseCases.UserCases;
 using Mapster;
 using eVOL.Domain.Entities;
 using eVOL.Application.DTOs.Responses.User;
 using eVOL.Application.DTOs;
+using eVOL.Application.Features.UserCases.Commands.LoginUser;
 
 
 namespace eVOL.ApplicationTests.UseCases.UserCases
@@ -25,12 +19,12 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var passwordHasherMock = new Mock<IPasswordHasher>();
             var jwtServiceMock = new Mock<IJwtService>();
             var configMock = new Mock<IConfiguration>();
-            var loggerMock = new Mock<ILogger<LoginUserUseCase>>();
+            var loggerMock = new Mock<ILogger<LoginUserHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
 
@@ -53,7 +47,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
             jwtServiceMock.Setup(j => j.GenerateJwtToken(fakeUser, It.IsAny<IConfiguration>())).Returns("accessToken");
             jwtServiceMock.Setup(j => j.GenerateRefreshToken()).Returns("refresh");
 
-            var sut = new LoginUserUseCase(
+            var sut = new LoginUserHandler(
                 uowMock.Object,
                 passwordHasherMock.Object,
                 jwtServiceMock.Object,
@@ -63,11 +57,11 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             // Act
 
-            var result = await sut.ExecuteAsync(new LoginDTO
+            var result = await sut.Handle(new LoginUserCommand(new LoginDTO
             {
                 Email = "email",
                 Password = "password"
-            });
+            }),CancellationToken.None);
 
             // Assert
 
@@ -93,19 +87,19 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var passwordHasherMock = new Mock<IPasswordHasher>();
             var jwtServiceMock = new Mock<IJwtService>();
             var configMock = new Mock<IConfiguration>();
-            var loggerMock = new Mock<ILogger<LoginUserUseCase>>();
+            var loggerMock = new Mock<ILogger<LoginUserHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
             uowMock.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
 
             uowMock.Setup(u => u.Users.GetUserByEmail(It.IsAny<string>())).ReturnsAsync((User?)null);
 
-            var sut = new LoginUserUseCase(
+            var sut = new LoginUserHandler(
                 uowMock.Object,
                 passwordHasherMock.Object,
                 jwtServiceMock.Object,
@@ -115,11 +109,11 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             // Act
 
-            var result = await sut.ExecuteAsync(new LoginDTO
+            var result = await sut.Handle(new LoginUserCommand(new LoginDTO
             {
                 Email = "email",
                 Password = "password"
-            });
+            }), CancellationToken.None);
 
             // Assert
 
@@ -135,12 +129,12 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var passwordHasherMock = new Mock<IPasswordHasher>();
             var jwtServiceMock = new Mock<IJwtService>();
             var configMock = new Mock<IConfiguration>();
-            var loggerMock = new Mock<ILogger<LoginUserUseCase>>();
+            var loggerMock = new Mock<ILogger<LoginUserHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
 
@@ -150,7 +144,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             uowMock.Setup(u => u.Users.GetUserByEmail(It.IsAny<string>())).ThrowsAsync(new Exception("Database error"));
 
-            var sut = new LoginUserUseCase(
+            var sut = new LoginUserHandler(
                 uowMock.Object,
                 passwordHasherMock.Object,
                 jwtServiceMock.Object,
@@ -162,11 +156,11 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             await Assert.ThrowsAsync<Exception>(async () =>
             {
-                await sut.ExecuteAsync(new LoginDTO
+                await sut.Handle(new LoginUserCommand(new LoginDTO
                 {
                     Email = "email",
                     Password = "password"
-                });
+                }), CancellationToken.None);
             });
 
             uowMock.Verify(u => u.BeginTransactionAsync(), Times.Once);

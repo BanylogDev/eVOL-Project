@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
-using Moq;
+﻿using Moq;
 using eVOL.Domain.RepositoriesInteraces;
 using Microsoft.Extensions.Logging;
-using eVOL.Application.UseCases.ChatGroupCases;
 using eVOL.Domain.Entities;
+using eVOL.Application.Features.ChatGroupCases.Commands.AddUserToChatGroup;
 
 
 
@@ -21,10 +15,10 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var chatGroupRepoMock = new Mock<IChatGroupRepository>();
-            var loggerMock = new Mock<ILogger<AddUserToChatGroupUseCase>>();
+            var loggerMock = new Mock<ILogger<AddUserToChatGroupHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
             uowMock.Setup(u => u.ChatGroup).Returns(chatGroupRepoMock.Object);
@@ -49,11 +43,11 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
                 OwnerId = 2,
             });
 
-            var sut = new AddUserToChatGroupUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new AddUserToChatGroupHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.ExecuteAsync(fakeUser.UserId, "TestGroup");
+            var result = await sut.Handle(new AddUserToChatGroupCommand(1, "TestGroup"), CancellationToken.None);
 
             // Assert
 
@@ -76,10 +70,10 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var chatGroupRepoMock = new Mock<IChatGroupRepository>();
-            var loggerMock = new Mock<ILogger<AddUserToChatGroupUseCase>>();
+            var loggerMock = new Mock<ILogger<AddUserToChatGroupHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
             uowMock.Setup(u => u.ChatGroup).Returns(chatGroupRepoMock.Object);
@@ -90,11 +84,11 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
             userRepoMock.Setup(u => u.GetUserById(It.IsAny<int>())).ReturnsAsync((User?)null);
 
-            var sut = new AddUserToChatGroupUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new AddUserToChatGroupHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.ExecuteAsync(1, "TestGroup");
+            var result = await sut.Handle(new AddUserToChatGroupCommand(1, "TestGroup"), CancellationToken.None);
 
             // Assert
 
@@ -112,10 +106,10 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var chatGroupRepoMock = new Mock<IChatGroupRepository>();
-            var loggerMock = new Mock<ILogger<AddUserToChatGroupUseCase>>();
+            var loggerMock = new Mock<ILogger<AddUserToChatGroupHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
             uowMock.Setup(u => u.ChatGroup).Returns(chatGroupRepoMock.Object);
@@ -126,11 +120,11 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
             userRepoMock.Setup(u => u.GetUserById(It.IsAny<int>())).ThrowsAsync(new Exception("Database error"));
 
-            var sut = new AddUserToChatGroupUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new AddUserToChatGroupHandler(uowMock.Object, loggerMock.Object);
 
             // Act & Assert
 
-            await Assert.ThrowsAsync<Exception>(() => sut.ExecuteAsync(1, "TestGroup"));
+            await Assert.ThrowsAsync<Exception>(async () => await sut.Handle(new AddUserToChatGroupCommand(1, "TestGroup"), CancellationToken.None));
 
             uowMock.Verify(u => u.BeginTransactionAsync(), Times.Once);
             uowMock.Verify(u => u.CommitAsync(), Times.Never);

@@ -1,60 +1,47 @@
 ﻿using eVOL.Application.DTOs.Requests;
-using eVOL.Application.UseCases.UCInterfaces.IUserCases;
-using eVOL.Application.UseCases.UserCases;
+using eVOL.Application.Features.UserCases.Commands.DeleteUser;
+using eVOL.Application.Features.UserCases.Commands.UpdateUser;
+using eVOL.Application.Features.UserCases.Queries.GetUser;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
 
 namespace eVOL.API.Controllers
 {
     [Route("api/user")]
     [ApiController]
-    //[Authorize(Roles = "User,Admin")]
+    [Authorize(Roles = "User,Admin")]
     public class UserController : ControllerBase
     {
 
-        private readonly IUpdateUserUseCase _updateUserUseCase;
-        private readonly IGetUserUseCase _getUserUseCase;
-        private readonly IDeleteUserUseCase _deleteUserUseCase;
+        private readonly ISender _sender;
 
-        public UserController(IUpdateUserUseCase updateUserUseCase, IGetUserUseCase getUserUseCase, IDeleteUserUseCase deleteUserUseCase)
+        public UserController(ISender sender)
         {
-            _updateUserUseCase = updateUserUseCase;
-            _getUserUseCase = getUserUseCase;
-            _deleteUserUseCase = deleteUserUseCase;
+            _sender = sender;
         }
 
 
         [HttpPut]
         public async Task<IActionResult> Update([FromBody] UpdateDTO dto)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var user = await _updateUserUseCase.ExecuteAsync(dto);
+            var user = await _sender.Send(new UpdateUserCommand(dto));
 
-            if (user == null)
-            {
-                return NotFound();
-            }
+            if (user == null) return NotFound();
 
             return Ok(user);
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id, [FromBody] DeleteAccountDTO dto)
+        [HttpDelete]
+        public async Task<IActionResult> Delete([FromBody] DeleteAccountDTO dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var user = await _deleteUserUseCase.ExecuteAsync(dto);
+            var user = await _sender.Send(new DeleteUserCommand(dto));
 
-            if (user == null)
-                return NotFound(new { message = $"User with id {id} not found" });
+            if (user == null) return NotFound(new { message = $"User with id {dto.Id} not found" });
 
             return Ok(new { message = "Account has been deleted successfully", user.Name });
         }
@@ -62,12 +49,9 @@ namespace eVOL.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUser(int id)
         {
-            var user = await _getUserUseCase.ExecuteAsync(id);
+            var user = await _sender.Send(new GetUserQuery(id));
 
-            if (user == null)
-            {
-                return NotFound();
-            }
+            if (user == null) return NotFound("User wasnt found");
 
             return Ok(user);
         }

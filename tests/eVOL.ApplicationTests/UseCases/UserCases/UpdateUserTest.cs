@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
-using Moq;
+﻿using Moq;
 using eVOL.Domain.RepositoriesInteraces;
 using eVOL.Application.ServicesInterfaces;
 using Microsoft.Extensions.Logging;
 using eVOL.Domain.Entities;
-using eVOL.Application.UseCases.UserCases;
 using eVOL.Application.DTOs.Requests;
+using eVOL.Application.Features.UserCases.Commands.UpdateUser;
 
 
 namespace eVOL.ApplicationTests.UseCases.UserCases
@@ -22,10 +16,10 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var passwordHasherMock = new Mock<IPasswordHasher>();
-            var loggerMock = new Mock<ILogger<UpdateUserUseCase>>();
+            var loggerMock = new Mock<ILogger<UpdateUserHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
             uowMock.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
@@ -44,7 +38,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             passwordHasherMock.Setup(p => p.HashPassword("OldPassword")).Returns("HashedNewPassword");
 
-            var sut = new UpdateUserUseCase(
+            var sut = new UpdateUserHandler(
                 uowMock.Object,
                 passwordHasherMock.Object,
                 loggerMock.Object
@@ -52,14 +46,14 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             // Act
 
-            var result = await sut.ExecuteAsync(new UpdateDTO
+            var result = await sut.Handle(new UpdateUserCommand(new UpdateDTO
             {
                 Id = 1,
                 Name = "NewName",
                 Email = "NewEmail",
                 Password = "OldPassword",
                 ConfirmPassword = "OldPassword",
-            });
+            }),CancellationToken.None);
 
             // Assert
 
@@ -81,17 +75,17 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
         public async Task UpdateUser_UpdateUserNull_ReturnsNull()
         {
             // Arrange
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var passwordHasherMock = new Mock<IPasswordHasher>();
-            var loggerMock = new Mock<ILogger<UpdateUserUseCase>>();
+            var loggerMock = new Mock<ILogger<UpdateUserHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
             uowMock.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
 
             userRepoMock.Setup(u => u.GetUserById(1)).ReturnsAsync((User?)null);
 
-            var sut = new UpdateUserUseCase(
+            var sut = new UpdateUserHandler(
                 uowMock.Object,
                 passwordHasherMock.Object,
                 loggerMock.Object
@@ -99,14 +93,14 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             // Act
 
-            var result = await sut.ExecuteAsync(new UpdateDTO
+            var result = await sut.Handle(new UpdateUserCommand(new UpdateDTO
             {
                 Id = 1,
                 Name = "NewName",
                 Email = "NewEmail",
                 Password = "OldPassword",
                 ConfirmPassword = "OldPassword",
-            });
+            }), CancellationToken.None);
 
             // Assert
 
@@ -123,10 +117,10 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var passwordHasherMock = new Mock<IPasswordHasher>();
-            var loggerMock = new Mock<ILogger<UpdateUserUseCase>>();
+            var loggerMock = new Mock<ILogger<UpdateUserHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
             uowMock.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
@@ -134,7 +128,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             userRepoMock.Setup(u => u.GetUserById(1)).ThrowsAsync(new Exception("Database error"));
 
-            var sut = new UpdateUserUseCase(
+            var sut = new UpdateUserHandler(
                 uowMock.Object,
                 passwordHasherMock.Object,
                 loggerMock.Object
@@ -144,14 +138,14 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             await Assert.ThrowsAsync<Exception>(async () =>
             {
-                await sut.ExecuteAsync(new UpdateDTO
+                await sut.Handle(new UpdateUserCommand(new UpdateDTO
                 {
                     Id = 1,
                     Name = "NewName",
                     Email = "NewEmail",
                     Password = "OldPassword",
                     ConfirmPassword = "OldPassword",
-                });
+                }), CancellationToken.None);
             });
 
             uowMock.Verify(u => u.BeginTransactionAsync(), Times.Once);

@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
-using Moq;
+﻿using Moq;
 using eVOL.Domain.RepositoriesInteraces;
-using eVOL.Application.UseCases.AdminCases;
 using eVOL.Domain.Entities;
 using Microsoft.Extensions.Logging;
+using eVOL.Application.Features.AdminCases.Queries.AdminGetUser;
 
 
 namespace eVOL.ApplicationTests.UseCases.AdminCases
@@ -20,9 +14,9 @@ namespace eVOL.ApplicationTests.UseCases.AdminCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
-            var loggerMock = new Mock<ILogger<AdminGetUserUseCase>>();
+            var loggerMock = new Mock<ILogger<AdminGetUserHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
 
@@ -33,11 +27,11 @@ namespace eVOL.ApplicationTests.UseCases.AdminCases
 
             userRepoMock.Setup(u => u.GetUserById(1)).ReturnsAsync(fakeUser);
 
-            var sut = new AdminGetUserUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new AdminGetUserHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.ExecuteAsync(1);
+            var result = await sut.Handle(new AdminGetUserQuery(1), CancellationToken.None);
 
             // Assert
 
@@ -51,19 +45,19 @@ namespace eVOL.ApplicationTests.UseCases.AdminCases
         public async Task AdminGetUserById_GetUserNullById_ReturnNull()
         {
             // Arrange
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
-            var loggerMock = new Mock<ILogger<AdminGetUserUseCase>>();
+            var loggerMock = new Mock<ILogger<AdminGetUserHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
 
             userRepoMock.Setup(u => u.GetUserById(1)).ReturnsAsync((User?)null);
 
-            var sut = new AdminGetUserUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new AdminGetUserHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.ExecuteAsync(1);
+            var result = await sut.Handle(new AdminGetUserQuery(1), CancellationToken.None);
 
             // Assert
 

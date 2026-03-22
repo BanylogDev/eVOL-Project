@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
-using Moq;
+﻿using Moq;
 using eVOL.Domain.RepositoriesInteraces;
 using Microsoft.Extensions.Logging;
-using eVOL.Application.UseCases.SupportTicketCases;
 using eVOL.Domain.Entities;
 using eVOL.Application.DTOs.Requests;
+using eVOL.Application.Features.SupportTicketCases.Commands.CreateSupportTicket;
 
 
 namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
@@ -22,9 +16,9 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
         {
             // Arrange
 
-            var uowMock = new Mock<IMySqlUnitOfWork>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
             var supportTicketRepoMock = new Mock<ISupportTicketRepository>();
-            var loggerMock = new Mock<ILogger<CreateSupportTicketUseCase>>();
+            var loggerMock = new Mock<ILogger<CreateSupportTicketHandler>>();
 
             uowMock.Setup(u => u.SupportTicket).Returns(supportTicketRepoMock.Object);
 
@@ -41,16 +35,16 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 
             supportTicketRepoMock.Setup(r => r.CreateSupportTicket(It.IsAny<SupportTicket>()));
 
-            var sut = new CreateSupportTicketUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new CreateSupportTicketHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.ExecuteAsync(new SupportTicketDTO
+            var result = await sut.Handle(new CreateSupportTicketCommand(new SupportTicketDTO
             {
                 Category = "Technical",
                 Text = "I need help with my account.",
                 OpenedBy = 1
-            });
+            }), CancellationToken.None);
 
             // Assert
 
@@ -67,8 +61,8 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
         public async Task CreateSupportTicket_ThrowException_ReturnNothing()
         {
             // Arrange
-            var uowMock = new Mock<IMySqlUnitOfWork>();
-            var loggerMock = new Mock<ILogger<CreateSupportTicketUseCase>>();
+            var uowMock = new Mock<IPostgreUnitOfWork>();
+            var loggerMock = new Mock<ILogger<CreateSupportTicketHandler>>();
 
 
             uowMock.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
@@ -77,17 +71,17 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 
             uowMock.Setup(u => u.Users.GetUserById(It.IsAny<int>())).ThrowsAsync(new Exception("Database error"));
 
-            var sut = new CreateSupportTicketUseCase(uowMock.Object, loggerMock.Object);
+            var sut = new CreateSupportTicketHandler(uowMock.Object, loggerMock.Object);
 
             // Act & Assert 
 
-            await Assert.ThrowsAsync<Exception>(async () => 
-                await sut.ExecuteAsync(new SupportTicketDTO
+            await Assert.ThrowsAsync<Exception>(async () =>
+                await sut.Handle(new CreateSupportTicketCommand(new SupportTicketDTO
                 {
-                    Category = "Test",
-                    Text = "Test Message",
+                    Category = "Technical",
+                    Text = "I need help with my account.",
                     OpenedBy = 1
-                })
+                }), CancellationToken.None)
             );
 
             uowMock.Verify(u => u.BeginTransactionAsync(), Times.Once);

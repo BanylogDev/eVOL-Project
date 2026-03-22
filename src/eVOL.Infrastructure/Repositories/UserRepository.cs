@@ -4,12 +4,7 @@ using eVOL.Domain.RepositoriesInteraces;
 using eVOL.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace eVOL.Infrastructure.Repositories
 {

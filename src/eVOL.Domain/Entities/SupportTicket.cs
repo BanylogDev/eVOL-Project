@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace eVOL.Domain.Entities
+﻿namespace eVOL.Domain.Entities
 {
     public class SupportTicket
     {

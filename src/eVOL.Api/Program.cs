@@ -1,7 +1,5 @@
 using eVOL.API.Configuration;
 using eVOL.API.Hubs;
-using eVOL.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -27,6 +25,7 @@ builder.Services
     .AddAuthenticationAndAuthorization(builder.Configuration)
     .AddCorsService()
     .AddMapper()
+    .AddMediatorService()
     .AddScopedUseCases()
     .AddRateLimiterService();
 
@@ -47,8 +46,8 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<ChatHub>("/chat-hub");
 
-using var scope = app.Services.CreateScope();
-var seeder = scope.ServiceProvider.GetRequiredService<SeedData>();
-await seeder.InitializeAsync();
+//using var scope = app.Services.CreateScope();
+//var seeder = scope.ServiceProvider.GetRequiredService<SeedData>();
+//await seeder.InitializeAsync();
 
 app.Run();

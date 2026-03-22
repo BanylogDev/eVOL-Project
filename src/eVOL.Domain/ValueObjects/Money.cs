@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace eVOL.Domain.ValueObjects
+﻿namespace eVOL.Domain.ValueObjects
 {
     public class Money
     {
         public double Balance { get; private set; } 
-        public string Currency { get; private set;   }
+        public string Currency { get; private set;}
         
         public Money(double balance, string currency)
         {
