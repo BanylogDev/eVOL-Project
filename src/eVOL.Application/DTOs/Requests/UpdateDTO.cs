@@ -5,7 +5,7 @@ namespace eVOL.Application.DTOs.Requests
     public sealed class UpdateDTO
     {
         [Required]
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         [Required]
         public string Name { get; set; } = string.Empty;
         [Required]

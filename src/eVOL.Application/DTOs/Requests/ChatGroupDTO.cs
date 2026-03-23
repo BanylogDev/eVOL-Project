@@ -12,6 +12,6 @@ namespace eVOL.Application.DTOs.Requests
         [Required]
         public List<User>? GroupUsers { get; set; }
         [Required]
-        public int OwnerId { get; set; }
+        public Guid OwnerId { get; set; }
     }
 }

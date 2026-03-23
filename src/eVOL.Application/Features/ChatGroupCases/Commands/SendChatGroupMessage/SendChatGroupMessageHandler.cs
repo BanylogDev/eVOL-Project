@@ -34,6 +34,7 @@ namespace eVOL.Application.Features.ChatGroupCases.Commands.SendChatGroupMessage
 
                 var evt = new ChatMessage
                 {
+                    MessageId = Guid.NewGuid(),
                     Text = request.Message,
                     SenderId = user.UserId,
                     ReceiverId = chatGroup.Id,

@@ -26,31 +26,31 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 
             var fakeSupportTicket = new SupportTicket
             {
-                Id = 1,
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                 Category = "Test",
                 Text = "Test Message",
-                OpenedById = 1
+                OpenedById = Guid.Parse("00000000-0000-0000-0000-000000000001")
             };
 
-            supportTicketRepoMock.Setup(r => r.GetSupportTicketById(1)).ReturnsAsync(fakeSupportTicket);
+            supportTicketRepoMock.Setup(r => r.GetSupportTicketById(Guid.Parse("00000000-0000-0000-0000-000000000001"))).ReturnsAsync(fakeSupportTicket);
             supportTicketRepoMock.Setup(r => r.DeleteSupportTicket(fakeSupportTicket));
 
             var sut = new DeleteSupportTicketHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.Handle(new DeleteSupportTicketCommand(1), CancellationToken.None);
+            var result = await sut.Handle(new DeleteSupportTicketCommand(Guid.Parse("00000000-0000-0000-0000-000000000001")), CancellationToken.None);
 
             // Assert
 
             Assert.NotNull(result);
-            Assert.Equal(1, result.Id);
+            Assert.Equal(Guid.Parse("00000000-0000-0000-0000-000000000001"), result.Id);
 
             uowMock.Verify(u => u.BeginTransactionAsync(), Times.Once);
             uowMock.Verify(u => u.CommitAsync(), Times.Once);
             uowMock.Verify(u => u.RollbackAsync(), Times.Never);
 
-            supportTicketRepoMock.Verify(r => r.GetSupportTicketById(1), Times.Once);
+            supportTicketRepoMock.Verify(r => r.GetSupportTicketById(Guid.Parse("00000000-0000-0000-0000-000000000001")), Times.Once);
             supportTicketRepoMock.Verify(r => r.DeleteSupportTicket(fakeSupportTicket), Times.Once);
 
         }
@@ -70,13 +70,13 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
             uowMock.Setup(u => u.CommitAsync()).Returns(Task.CompletedTask);
             uowMock.Setup(u => u.RollbackAsync()).Returns(Task.CompletedTask);
 
-            supportTicketRepoMock.Setup(r => r.GetSupportTicketById(1)).ReturnsAsync((SupportTicket?)null);
+            supportTicketRepoMock.Setup(r => r.GetSupportTicketById(Guid.Parse("00000000-0000-0000-0000-000000000001"))).ReturnsAsync((SupportTicket?)null);
 
             var sut = new DeleteSupportTicketHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.Handle(new DeleteSupportTicketCommand(1), CancellationToken.None);
+            var result = await sut.Handle(new DeleteSupportTicketCommand(Guid.Parse("00000000-0000-0000-0000-000000000001")), CancellationToken.None);
 
             // Assert
 
@@ -86,7 +86,7 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
             uowMock.Verify(u => u.CommitAsync(), Times.Never);
             uowMock.Verify(u => u.RollbackAsync(), Times.Never);
 
-            supportTicketRepoMock.Verify(r => r.GetSupportTicketById(1), Times.Once);
+            supportTicketRepoMock.Verify(r => r.GetSupportTicketById(Guid.Parse("00000000-0000-0000-0000-000000000001")), Times.Once);
         }
 
         [Fact]
@@ -104,20 +104,20 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
             uowMock.Setup(u => u.CommitAsync()).Returns(Task.CompletedTask);
             uowMock.Setup(u => u.RollbackAsync()).Returns(Task.CompletedTask);
 
-            supportTicketRepoMock.Setup(s => s.GetSupportTicketById(1))
+            supportTicketRepoMock.Setup(s => s.GetSupportTicketById(Guid.Parse("00000000-0000-0000-0000-000000000001")))
                 .ThrowsAsync(new Exception("Database error"));
 
             var sut = new DeleteSupportTicketHandler(uowMock.Object, loggerMock.Object);
 
             // Act & Assert
 
-            await Assert.ThrowsAsync<Exception>(async () => await sut.Handle(new DeleteSupportTicketCommand(1), CancellationToken.None));
+            await Assert.ThrowsAsync<Exception>(async () => await sut.Handle(new DeleteSupportTicketCommand(Guid.Parse("00000000-0000-0000-0000-000000000001")), CancellationToken.None));
 
             uowMock.Verify(u => u.BeginTransactionAsync(), Times.Once);
             uowMock.Verify(u => u.CommitAsync(), Times.Never);
             uowMock.Verify(u => u.RollbackAsync(), Times.Once);
 
-            supportTicketRepoMock.Verify(s => s.GetSupportTicketById(It.IsAny<int>()), Times.Once);
+            supportTicketRepoMock.Verify(s => s.GetSupportTicketById(It.IsAny<Guid>()), Times.Once);
 
         }
     }

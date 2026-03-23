@@ -36,7 +36,7 @@ namespace eVOL.Infrastructure.Repositories
             return chatGroup;
         }
 
-        public async Task<ChatGroup?> GetChatGroupById(int chatGroupId)
+        public async Task<ChatGroup?> GetChatGroupById(Guid chatGroupId)
         {
 
             var cacheKey = $"chatGroup:{chatGroupId}";
@@ -60,7 +60,7 @@ namespace eVOL.Infrastructure.Repositories
                 await _cacheService.SetAsync(
                     cacheKey,
                     JsonSerializer.Serialize(chatGroup),
-                    TimeSpan.FromMinutes(2));
+                    TimeSpan.FromMinutes(10));
             }
 
             return chatGroup;
@@ -89,7 +89,7 @@ namespace eVOL.Infrastructure.Repositories
                 await _cacheService.SetAsync(
                     cacheKey,
                     JsonSerializer.Serialize(chatGroup),
-                    TimeSpan.FromMinutes(2));
+                    TimeSpan.FromMinutes(10));
             }
 
             return chatGroup;

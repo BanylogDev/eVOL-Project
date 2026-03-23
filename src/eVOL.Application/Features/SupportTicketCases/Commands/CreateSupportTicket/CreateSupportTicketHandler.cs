@@ -35,10 +35,11 @@ namespace eVOL.Application.Features.SupportTicketCases.Commands.CreateSupportTic
 
                 var newSupportTicket = new SupportTicket()
                 {
+                    Id = Guid.NewGuid(),
                     Category = request.Dto.Category,
                     Text = request.Dto.Text,
                     OpenedById = request.Dto.OpenedBy,
-                    ClaimedById = 0,
+                    ClaimedById = Guid.Empty,
                     OpenedBy = user,
                     CreatedAt = DateTime.UtcNow
 

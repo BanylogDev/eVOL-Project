@@ -28,10 +28,10 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 
             var fakeUser = new User
             {
-                UserId = 1,
+                UserId = Guid.Parse("00000000-0000-0000-0000-000000000001"),
             };
 
-            uowMock.Setup(u => u.Users.GetUserById(It.IsAny<int>())).ReturnsAsync(fakeUser);
+            uowMock.Setup(u => u.Users.GetUserById(It.IsAny<Guid>())).ReturnsAsync(fakeUser);
 
             supportTicketRepoMock.Setup(r => r.CreateSupportTicket(It.IsAny<SupportTicket>()));
 
@@ -43,7 +43,7 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
             {
                 Category = "Technical",
                 Text = "I need help with my account.",
-                OpenedBy = 1
+                OpenedBy = Guid.Parse("00000000-0000-0000-0000-000000000001")
             }), CancellationToken.None);
 
             // Assert
@@ -69,7 +69,7 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
             uowMock.Setup(u => u.CommitAsync()).Returns(Task.CompletedTask);
             uowMock.Setup(u => u.RollbackAsync()).Returns(Task.CompletedTask);
 
-            uowMock.Setup(u => u.Users.GetUserById(It.IsAny<int>())).ThrowsAsync(new Exception("Database error"));
+            uowMock.Setup(u => u.Users.GetUserById(It.IsAny<Guid>())).ThrowsAsync(new Exception("Database error"));
 
             var sut = new CreateSupportTicketHandler(uowMock.Object, loggerMock.Object);
 
@@ -80,7 +80,7 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
                 {
                     Category = "Technical",
                     Text = "I need help with my account.",
-                    OpenedBy = 1
+                    OpenedBy = Guid.Parse("00000000-0000-0000-0000-000000000001")
                 }), CancellationToken.None)
             );
 
@@ -88,7 +88,7 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
             uowMock.Verify(u => u.CommitAsync(), Times.Never);
             uowMock.Verify(u => u.RollbackAsync(), Times.Once);
 
-            uowMock.Verify(u => u.Users.GetUserById(It.IsAny<int>()), Times.Once);
+            uowMock.Verify(u => u.Users.GetUserById(It.IsAny<Guid>()), Times.Once);
 
         }
 

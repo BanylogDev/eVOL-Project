@@ -27,19 +27,19 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
             var fakeUser = new User
             {
-                UserId = 1,
+                UserId = Guid.Parse("00000000-0000-0000-0000-000000000000"),
             };
 
             var fakeChatGroup = new ChatGroup
             {
-                Id = 1,
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000000"),
                 Name = "TestGroup",
                 TotalUsers = 2,
                 GroupUsers = new List<User> { fakeUser },
-                OwnerId = 2,
+                OwnerId = Guid.Parse("00000000-0000-0000-0000-000000000001"),
             };
 
-            userRepoMock.Setup(u => u.GetUserById(It.IsAny<int>())).ReturnsAsync(fakeUser);
+            userRepoMock.Setup(u => u.GetUserById(It.IsAny<Guid>())).ReturnsAsync(fakeUser);
 
             chatGroupRepoMock.Setup(c => c.GetChatGroupByName(It.IsAny<string>())).ReturnsAsync(fakeChatGroup);
 
@@ -81,18 +81,18 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
             var fakeUser = new User
             {
-                UserId = 1,
+                UserId = Guid.Parse("00000000-0000-0000-0000-000000000001"),
             };
 
             var fakeChatGroup = new ChatGroup
             {
-                Id = 1,
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                 Name = "TestGroup",
                 TotalUsers = 1,
                 GroupUsers = new List<User>(),
-                OwnerId = 2,
+                OwnerId = Guid.Parse("00000000-0000-0000-0000-000000000002"),
             };
-            userRepoMock.Setup(u => u.GetUserById(It.IsAny<int>())).ReturnsAsync(fakeUser);
+            userRepoMock.Setup(u => u.GetUserById(It.IsAny<Guid>())).ReturnsAsync(fakeUser);
 
             chatGroupRepoMock.Setup(c => c.GetChatGroupByName(It.IsAny<string>())).ReturnsAsync(fakeChatGroup);
 
@@ -134,19 +134,19 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
             var fakeUser = new User
             {
-                UserId = 2,
+                UserId = Guid.Parse("00000000-0000-0000-0000-000000000002"),
             };
 
             var fakeChatGroup = new ChatGroup
             {
-                Id = 1,
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                 Name = "TestGroup",
                 TotalUsers = 1,
                 GroupUsers = new List<User> { fakeUser },
-                OwnerId = 2,
+                OwnerId = Guid.Parse("00000000-0000-0000-0000-000000000002"),
             };
 
-            userRepoMock.Setup(u => u.GetUserById(It.IsAny<int>())).ReturnsAsync(fakeUser);
+            userRepoMock.Setup(u => u.GetUserById(It.IsAny<Guid>())).ReturnsAsync(fakeUser);
 
             chatGroupRepoMock.Setup(c => c.GetChatGroupByName(It.IsAny<string>())).ReturnsAsync(fakeChatGroup);
 
@@ -187,7 +187,7 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
             uowMock.Setup(u => u.CommitAsync()).Returns(Task.CompletedTask);
             uowMock.Setup(u => u.RollbackAsync()).Returns(Task.CompletedTask);
 
-            userRepoMock.Setup(u => u.GetUserById(It.IsAny<int>())).ThrowsAsync(new Exception("Database error"));
+            userRepoMock.Setup(u => u.GetUserById(It.IsAny<Guid>())).ThrowsAsync(new Exception("Database error"));
 
             var sut = new RemoveUserFromChatGroupHandler(uowMock.Object, loggerMock.Object);
 
@@ -195,14 +195,14 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
             await Assert.ThrowsAsync<Exception>(async () =>
             {
-                await sut.Handle(new RemoveUserFromChatGroupCommand(1, "TestGroup"), CancellationToken.None);
+                await sut.Handle(new RemoveUserFromChatGroupCommand(Guid.Parse("00000000-0000-0000-0000-000000000001"), "TestGroup"), CancellationToken.None);
             });
 
             uowMock.Verify(u => u.BeginTransactionAsync(), Times.Once);
             uowMock.Verify(u => u.CommitAsync(), Times.Never);
             uowMock.Verify(u => u.RollbackAsync(), Times.Once);
 
-            userRepoMock.Verify(u => u.GetUserById(It.IsAny<int>()), Times.Once);
+            userRepoMock.Verify(u => u.GetUserById(It.IsAny<Guid>()), Times.Once);
         }
     }
 }

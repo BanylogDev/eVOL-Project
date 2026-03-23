@@ -50,6 +50,8 @@ namespace eVOL.Application.Features.UserCases.Commands.UpdateUser
 
                 await _uow.CommitAsync();
 
+                await _uow.Users.UpdateUserCache(user.UserId);
+
                 _logger.LogInformation("UpdateUserUseCase completed successfully for User ID: {UserId}", request.Dto.Id);
 
                 return user;

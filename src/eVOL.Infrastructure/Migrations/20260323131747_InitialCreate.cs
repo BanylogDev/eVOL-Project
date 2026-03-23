@@ -1,6 +1,5 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -16,11 +15,10 @@ namespace eVOL.Infrastructure.Migrations
                 name: "ChatGroups",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     TotalUsers = table.Column<int>(type: "integer", nullable: false),
-                    OwnerId = table.Column<int>(type: "integer", nullable: false),
+                    OwnerId = table.Column<Guid>(type: "uuid", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
@@ -32,11 +30,10 @@ namespace eVOL.Infrastructure.Migrations
                 name: "ChatMessages",
                 columns: table => new
                 {
-                    MessageId = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    MessageId = table.Column<Guid>(type: "uuid", nullable: false),
                     Text = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
-                    SenderId = table.Column<int>(type: "integer", nullable: false),
-                    ReceiverId = table.Column<int>(type: "integer", nullable: false),
+                    SenderId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ReceiverId = table.Column<Guid>(type: "uuid", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
@@ -48,8 +45,7 @@ namespace eVOL.Infrastructure.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    UserId = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Email = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     Password = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
@@ -74,8 +70,8 @@ namespace eVOL.Infrastructure.Migrations
                 name: "ChatGroupUsers",
                 columns: table => new
                 {
-                    ChatGroupsId = table.Column<int>(type: "integer", nullable: false),
-                    GroupUsersUserId = table.Column<int>(type: "integer", nullable: false)
+                    ChatGroupsId = table.Column<Guid>(type: "uuid", nullable: false),
+                    GroupUsersUserId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -98,13 +94,12 @@ namespace eVOL.Infrastructure.Migrations
                 name: "SupportTickets",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     Category = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Text = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: false),
-                    OpenedById = table.Column<int>(type: "integer", nullable: false),
-                    ClaimedById = table.Column<int>(type: "integer", nullable: false),
+                    OpenedById = table.Column<Guid>(type: "uuid", nullable: false),
+                    ClaimedById = table.Column<Guid>(type: "uuid", nullable: false),
                     ClaimedStatus = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -129,8 +124,8 @@ namespace eVOL.Infrastructure.Migrations
                 name: "SupportTicketUsers",
                 columns: table => new
                 {
-                    SupportTicketUsersUserId = table.Column<int>(type: "integer", nullable: false),
-                    SupportTicketsId = table.Column<int>(type: "integer", nullable: false)
+                    SupportTicketUsersUserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SupportTicketsId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {

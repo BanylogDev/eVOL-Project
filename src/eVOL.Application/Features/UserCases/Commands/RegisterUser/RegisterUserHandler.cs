@@ -60,6 +60,7 @@ namespace eVOL.Application.Features.UserCases.Commands.RegisterUser
 
                 var newUser = new User
                 {
+                    UserId = Guid.NewGuid(),
                     Name = request.Dto.Name,
                     Email = request.Dto.Email,
                     Password = hashedPassword,

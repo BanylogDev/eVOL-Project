@@ -30,21 +30,21 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 
             var fakeUser = new User
             {
-                UserId = 1,
+                UserId = Guid.Parse("00000000-0000-0000-0000-000000000001"),
             };
 
             var fakeSupportTicket = new SupportTicket
             {
-                Id = 1,
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                 ClaimedStatus = false,
-                ClaimedById = 0,
-                OpenedById = 1,
+                ClaimedById = Guid.Parse("00000000-0000-0000-0000-000000000000"),
+                OpenedById = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                 OpenedBy = fakeUser,
             };
 
-            userRepoMock.Setup(r => r.GetUserById(It.IsAny<int>())).ReturnsAsync(fakeUser);
+            userRepoMock.Setup(r => r.GetUserById(It.IsAny<Guid>())).ReturnsAsync(fakeUser);
 
-            supportTicketRepoMock.Setup(r => r.GetSupportTicketById(It.IsAny<int>())).ReturnsAsync(fakeSupportTicket);
+            supportTicketRepoMock.Setup(r => r.GetSupportTicketById(It.IsAny<Guid>())).ReturnsAsync(fakeSupportTicket);
 
             var sut = new ClaimSupportTicketHandler(uowMock.Object, loggerMock.Object);
 
@@ -52,8 +52,8 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 
             var result = await sut.Handle(new ClaimSupportTicketCommand(new ClaimSupportTicketDTO
             {
-                Id = 1,
-                OpenedBy = 1
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+                OpenedBy = Guid.Parse("00000000-0000-0000-0000-000000000001")
             }), CancellationToken.None);
 
             // Assert
@@ -67,9 +67,9 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
             uowMock.Verify(u => u.CommitAsync(), Times.Once);
             uowMock.Verify(u => u.RollbackAsync(), Times.Never);
 
-            userRepoMock.Verify(r => r.GetUserById(It.IsAny<int>()), Times.Once);
+            userRepoMock.Verify(r => r.GetUserById(It.IsAny<Guid>()), Times.Once);
 
-            supportTicketRepoMock.Verify(r => r.GetSupportTicketById(It.IsAny<int>()), Times.Once);
+            supportTicketRepoMock.Verify(r => r.GetSupportTicketById(It.IsAny<Guid>()), Times.Once);
         }
 
         [Fact]
@@ -89,8 +89,8 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
             uowMock.Setup(u => u.CommitAsync()).Returns(Task.CompletedTask);
             uowMock.Setup(u => u.RollbackAsync()).Returns(Task.CompletedTask);
 
-            userRepoMock.Setup(r => r.GetUserById(It.IsAny<int>())).ReturnsAsync((User?)null);
-            supportTicketRepoMock.Setup(r => r.GetSupportTicketById(It.IsAny<int>())).ReturnsAsync((SupportTicket?)null);
+            userRepoMock.Setup(r => r.GetUserById(It.IsAny<Guid>())).ReturnsAsync((User?)null);
+            supportTicketRepoMock.Setup(r => r.GetSupportTicketById(It.IsAny<Guid>())).ReturnsAsync((SupportTicket?)null);
 
             var sut = new ClaimSupportTicketHandler(uowMock.Object, loggerMock.Object);
 
@@ -98,8 +98,8 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 
             var result = await sut.Handle(new ClaimSupportTicketCommand(new ClaimSupportTicketDTO
             {
-                Id = 1,
-                OpenedBy = 1
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+                OpenedBy = Guid.Parse("00000000-0000-0000-0000-000000000001")
             }), CancellationToken.None);
 
             // Assert
@@ -110,9 +110,9 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
             uowMock.Verify(u => u.CommitAsync(), Times.Never);
             uowMock.Verify(u => u.RollbackAsync(), Times.Never);
 
-            userRepoMock.Verify(r => r.GetUserById(It.IsAny<int>()), Times.Once);
+            userRepoMock.Verify(r => r.GetUserById(It.IsAny<Guid>()), Times.Once);
 
-            supportTicketRepoMock.Verify(r => r.GetSupportTicketById(It.IsAny<int>()), Times.Once);
+            supportTicketRepoMock.Verify(r => r.GetSupportTicketById(It.IsAny<Guid>()), Times.Once);
         }
 
         [Fact]
@@ -133,21 +133,21 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 
             var fakeUser = new User
             {
-                UserId = 1,
+                UserId = Guid.Parse("00000000-0000-0000-0000-000000000001"),
             };
 
             var fakeSupportTicket = new SupportTicket
             {
-                Id = 1,
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                 ClaimedStatus = true,
-                ClaimedById = 2,
-                OpenedById = 1,
+                ClaimedById = Guid.Parse("00000000-0000-0000-0000-000000000002"),
+                OpenedById = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                 OpenedBy = fakeUser,
             };
 
-            userRepoMock.Setup(r => r.GetUserById(It.IsAny<int>())).ReturnsAsync(fakeUser);
+            userRepoMock.Setup(r => r.GetUserById(It.IsAny<Guid>())).ReturnsAsync(fakeUser);
 
-            supportTicketRepoMock.Setup(r => r.GetSupportTicketById(It.IsAny<int>())).ReturnsAsync(fakeSupportTicket);
+            supportTicketRepoMock.Setup(r => r.GetSupportTicketById(It.IsAny<Guid>())).ReturnsAsync(fakeSupportTicket);
 
             var sut = new ClaimSupportTicketHandler(uowMock.Object, loggerMock.Object);
 
@@ -155,8 +155,8 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 
             var result = await sut.Handle(new ClaimSupportTicketCommand(new ClaimSupportTicketDTO
             {
-                Id = 1,
-                OpenedBy = 1
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+                OpenedBy = Guid.Parse("00000000-0000-0000-0000-000000000001")
             }), CancellationToken.None);
 
             // Assert
@@ -167,9 +167,9 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
             uowMock.Verify(u => u.CommitAsync(), Times.Never);
             uowMock.Verify(u => u.RollbackAsync(), Times.Never);
 
-            userRepoMock.Verify(r => r.GetUserById(It.IsAny<int>()), Times.Once);
+            userRepoMock.Verify(r => r.GetUserById(It.IsAny<Guid>()), Times.Once);
 
-            supportTicketRepoMock.Verify(r => r.GetSupportTicketById(It.IsAny<int>()), Times.Once);
+            supportTicketRepoMock.Verify(r => r.GetSupportTicketById(It.IsAny<Guid>()), Times.Once);
         }
 
         [Fact]
@@ -188,7 +188,7 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
             uowMock.Setup(u => u.CommitAsync()).Returns(Task.CompletedTask);
             uowMock.Setup(u => u.RollbackAsync()).Returns(Task.CompletedTask);
 
-            userRepoMock.Setup(r => r.GetUserById(It.IsAny<int>())).ThrowsAsync(new Exception("Database error"));
+            userRepoMock.Setup(r => r.GetUserById(It.IsAny<Guid>())).ThrowsAsync(new Exception("Database error"));
 
             var sut = new ClaimSupportTicketHandler(uowMock.Object, loggerMock.Object);
 
@@ -198,17 +198,17 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 
             await Assert.ThrowsAsync<Exception>(async () => await sut.Handle(new ClaimSupportTicketCommand(new ClaimSupportTicketDTO
             {
-                Id = 1,
-                OpenedBy = 1
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+                OpenedBy = Guid.Parse("00000000-0000-0000-0000-000000000001")   
             }), CancellationToken.None));
 
             uowMock.Verify(u => u.BeginTransactionAsync(), Times.Once);
             uowMock.Verify(u => u.CommitAsync(), Times.Never);
             uowMock.Verify(u => u.RollbackAsync(), Times.Once);
 
-            userRepoMock.Verify(r => r.GetUserById(It.IsAny<int>()), Times.Once);
+            userRepoMock.Verify(r => r.GetUserById(It.IsAny<Guid>()), Times.Once);
 
-            supportTicketRepoMock.Verify(r => r.GetSupportTicketById(It.IsAny<int>()), Times.Never);
+            supportTicketRepoMock.Verify(r => r.GetSupportTicketById(It.IsAny<Guid>()), Times.Never);
         }
 
 

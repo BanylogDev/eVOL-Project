@@ -33,28 +33,28 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 
             var fakeUser = new User
             {
-                UserId = 1, 
+                UserId = Guid.Parse("00000000-0000-0000-0000-000000000001"), 
             };
 
             var fakeSupportTicket = new SupportTicket
             {
-                Id = 1,
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                 Name = "Test Support Ticket"
             };
 
             var Message = new ChatMessage
             {
                 Text = "Test",
-                SenderId = 1,
-                ReceiverId = 1,
+                SenderId = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+                ReceiverId = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                 CreatedAt = DateTime.UtcNow,
-                MessageId = 1,
+                MessageId = Guid.Parse("00000000-0000-0000-0000-000000000001"),
             };
 
             supportTicketRepoMock.Setup(s => s.GetSupportTicketByName("Test Support Ticket"))
                 .ReturnsAsync(fakeSupportTicket);
 
-            userRepoMock.Setup(u => u.GetUserById(1))
+            userRepoMock.Setup(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000001")))
                 .ReturnsAsync(fakeUser);
 
             notificationRepoMock
@@ -84,7 +84,7 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 
             supportTicketRepoMock.Verify(s => s.GetSupportTicketByName(It.IsAny<string>()), Times.Once);
 
-            userRepoMock.Verify(u => u.GetUserById(1), Times.Once);
+            userRepoMock.Verify(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000001")), Times.Once);
 
             notificationRepoMock.Verify(u => u.Publish(It.IsAny<SendSupportTicketMessageEvent>()), Times.Once);
 
@@ -116,14 +116,14 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
             supportTicketRepoMock.Setup(s => s.GetSupportTicketByName("Test Support Ticket"))
                 .ReturnsAsync((SupportTicket?)null);
 
-            userRepoMock.Setup(u => u.GetUserById(1))
+            userRepoMock.Setup(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000001")))
                 .ReturnsAsync((User?)null);
 
             var sut = new SendSupportTicketMessageHandler(notificationRepoMock.Object, uowMysqlMock.Object, loggerMock.Object);
 
             // Act
 
-            var (chatMessage, user) = await sut.Handle(new SendSupportTicketMessageCommand("Test Message", "Test Support Ticket", 1), CancellationToken.None);
+            var (chatMessage, user) = await sut.Handle(new SendSupportTicketMessageCommand("Test Message", "Test Support Ticket", Guid.Parse("00000000-0000-0000-0000-000000000001")), CancellationToken.None);
 
             // Assert
 
@@ -138,7 +138,7 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 
             supportTicketRepoMock.Verify(s => s.GetSupportTicketByName(It.IsAny<string>()), Times.Once);
 
-            userRepoMock.Verify(u => u.GetUserById(1), Times.Once);
+            userRepoMock.Verify(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000001")), Times.Once);
         }
 
         [Fact]
@@ -171,7 +171,7 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 
             // Act & Assert
 
-            await Assert.ThrowsAsync<Exception>(async () => await sut.Handle(new SendSupportTicketMessageCommand("Test Message", "Test Support Ticket", 1), CancellationToken.None));
+            await Assert.ThrowsAsync<Exception>(async () => await sut.Handle(new SendSupportTicketMessageCommand("Test Message", "Test Support Ticket", Guid.Parse("00000000-0000-0000-0000-000000000001")), CancellationToken.None));
 
             uowMysqlMock.Verify(u => u.BeginTransactionAsync(), Times.Once);
 

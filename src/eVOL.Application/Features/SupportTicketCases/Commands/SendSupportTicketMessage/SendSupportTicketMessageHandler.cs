@@ -40,6 +40,7 @@ namespace eVOL.Application.Features.SupportTicketCases.Commands.SendSupportTicke
 
                 var newMessage = new ChatMessage
                 {
+                    MessageId = Guid.NewGuid(),
                     Text = request.Message,
                     SenderId = user.UserId,
                     ReceiverId = supportTicket.Id,

@@ -30,30 +30,30 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
             var fakeCurrentOwner = new User
             {
-                UserId = 1,
+                UserId = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                 Name = "CurrentOwner"
             };
 
             var fakeNewOwner = new User
             {
-                UserId = 2,
+                UserId = Guid.Parse("00000000-0000-0000-0000-000000000002"),
                 Name = "NewOwner"
             };
 
             var fakeChatGroup = new ChatGroup
             {
-                Id = 1,
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                 Name = "TestGroup",
-                OwnerId = 1
+                OwnerId = Guid.Parse("00000000-0000-0000-0000-000000000001")
             };
 
-            userRepoMock.Setup(u => u.GetUserById(1))
+            userRepoMock.Setup(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000001")))
                 .ReturnsAsync(fakeCurrentOwner);
 
-            userRepoMock.Setup(u => u.GetUserById(2))
+            userRepoMock.Setup(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000002")))
                 .ReturnsAsync(fakeNewOwner);
 
-            chatGroupRepoMock.Setup(c => c.GetChatGroupById(1))
+            chatGroupRepoMock.Setup(c => c.GetChatGroupById(Guid.Parse("00000000-0000-0000-0000-000000000001")))
                 .ReturnsAsync(fakeChatGroup);
 
             var sut = new TransferOwnershipOfChatGroupHandler(uowMock.Object, loggerMock.Object);
@@ -73,9 +73,9 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
             uowMock.Verify(u => u.CommitAsync(), Times.Once);
             uowMock.Verify(u => u.RollbackAsync(), Times.Never);
 
-            userRepoMock.Verify(u => u.GetUserById(It.IsAny<int>()), Times.Exactly(2));
+            userRepoMock.Verify(u => u.GetUserById(It.IsAny<Guid>()), Times.Exactly(2));
 
-            chatGroupRepoMock.Verify(c => c.GetChatGroupById(It.IsAny<int>()), Times.Once);
+            chatGroupRepoMock.Verify(c => c.GetChatGroupById(It.IsAny<Guid>()), Times.Once);
 
         }
 
@@ -96,10 +96,10 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
             uowMock.Setup(u => u.CommitAsync()).Returns(Task.CompletedTask);
             uowMock.Setup(u => u.RollbackAsync()).Returns(Task.CompletedTask);
 
-            userRepoMock.Setup(u => u.GetUserById(It.IsAny<int>()))
+            userRepoMock.Setup(u => u.GetUserById(It.IsAny<Guid>()))
                 .ReturnsAsync((User?)null);
 
-            chatGroupRepoMock.Setup(c => c.GetChatGroupById(It.IsAny<int>()))
+            chatGroupRepoMock.Setup(c => c.GetChatGroupById(It.IsAny<Guid>()))
                 .ReturnsAsync((ChatGroup?)null);
 
             var sut = new TransferOwnershipOfChatGroupHandler(uowMock.Object, loggerMock.Object);
@@ -107,7 +107,7 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
             // Act
 
             var result = await sut.Handle(new TransferOwnershipOfChatGroupCommand(
-                new TransferOwnershipOfCGDTO { CurrentOwnerId = 1, NewOwnerId = 2, ChatGroupId = 1 }), CancellationToken.None);
+                new TransferOwnershipOfCGDTO { CurrentOwnerId = Guid.Parse("00000000-0000-0000-0000-000000000000"), NewOwnerId = Guid.Parse("00000000-0000-0000-0000-000000000002"), ChatGroupId = Guid.Parse("00000000-0000-0000-0000-000000000000") }), CancellationToken.None);
 
             // Assert
 
@@ -117,9 +117,9 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
             uowMock.Verify(u => u.CommitAsync(), Times.Never);
             uowMock.Verify(u => u.RollbackAsync(), Times.Never);
 
-            userRepoMock.Verify(u => u.GetUserById(It.IsAny<int>()), Times.Exactly(2));
+            userRepoMock.Verify(u => u.GetUserById(It.IsAny<Guid>()), Times.Exactly(2));
 
-            chatGroupRepoMock.Verify(c => c.GetChatGroupById(It.IsAny<int>()), Times.Once);
+            chatGroupRepoMock.Verify(c => c.GetChatGroupById(It.IsAny<Guid>()), Times.Once);
         }
 
         [Fact]
@@ -140,30 +140,30 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
             var fakeCurrentOwner = new User
             {
-                UserId = 1,
+                UserId = Guid.Parse("00000000-0000-0000-0000-000000000000"),
                 Name = "CurrentOwner"
             };
 
             var fakeNewOwner = new User
             {
-                UserId = 2,
+                UserId = Guid.Parse("00000000-0000-0000-0000-000000000002"),
                 Name = "NewOwner"
             };
 
             var fakeChatGroup = new ChatGroup
             {
-                Id = 1,
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000000"),
                 Name = "TestGroup",
-                OwnerId = 3
+                OwnerId = Guid.Parse("00000000-0000-0000-0000-000000000002")
             };
 
-            userRepoMock.Setup(u => u.GetUserById(1))
+            userRepoMock.Setup(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000000")))
                 .ReturnsAsync(fakeCurrentOwner);
 
-            userRepoMock.Setup(u => u.GetUserById(2))
+            userRepoMock.Setup(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000001")))
                 .ReturnsAsync(fakeNewOwner);
 
-            chatGroupRepoMock.Setup(c => c.GetChatGroupById(It.IsAny<int>()))
+            chatGroupRepoMock.Setup(c => c.GetChatGroupById(It.IsAny<Guid>()))
                 .ReturnsAsync(fakeChatGroup);
 
             var sut = new TransferOwnershipOfChatGroupHandler(uowMock.Object, loggerMock.Object);
@@ -181,9 +181,9 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
             uowMock.Verify(u => u.CommitAsync(), Times.Never);
             uowMock.Verify(u => u.RollbackAsync(), Times.Never);
 
-            userRepoMock.Verify(u => u.GetUserById(It.IsAny<int>()), Times.Exactly(2));
+            userRepoMock.Verify(u => u.GetUserById(It.IsAny<Guid>()), Times.Exactly(2));
 
-            chatGroupRepoMock.Verify(c => c.GetChatGroupById(It.IsAny<int>()), Times.Once);
+            chatGroupRepoMock.Verify(c => c.GetChatGroupById(It.IsAny<Guid>()), Times.Once);
         }
 
         [Fact]
@@ -203,7 +203,7 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
             uowMock.Setup(u => u.CommitAsync()).Returns(Task.CompletedTask);
             uowMock.Setup(u => u.RollbackAsync()).Returns(Task.CompletedTask);
 
-            userRepoMock.Setup(u => u.GetUserById(It.IsAny<int>()))
+            userRepoMock.Setup(u => u.GetUserById(It.IsAny<Guid>()))
                 .ThrowsAsync(new Exception("Database error"));
 
             var sut = new TransferOwnershipOfChatGroupHandler(uowMock.Object, loggerMock.Object);
@@ -211,15 +211,15 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
             // Act & Assert
 
             await Assert.ThrowsAsync<Exception>(async () => await sut.Handle(new TransferOwnershipOfChatGroupCommand(
-                new TransferOwnershipOfCGDTO { CurrentOwnerId = 1, NewOwnerId = 2, ChatGroupId = 1 }), CancellationToken.None));
+                new TransferOwnershipOfCGDTO { CurrentOwnerId = Guid.Parse("00000000-0000-0000-0000-000000000000"), NewOwnerId = Guid.Parse("00000000-0000-0000-0000-000000000001"), ChatGroupId = Guid.Parse("00000000-0000-0000-0000-000000000000") }), CancellationToken.None));
 
             uowMock.Verify(u => u.BeginTransactionAsync(), Times.Once);
             uowMock.Verify(u => u.CommitAsync(), Times.Never);
             uowMock.Verify(u => u.RollbackAsync(), Times.Once);
 
-            userRepoMock.Verify(u => u.GetUserById(It.IsAny<int>()), Times.Once);
+            userRepoMock.Verify(u => u.GetUserById(It.IsAny<Guid>()), Times.Once);
 
-            chatGroupRepoMock.Verify(c => c.GetChatGroupById(It.IsAny<int>()), Times.Never);
+            chatGroupRepoMock.Verify(c => c.GetChatGroupById(It.IsAny<Guid>()), Times.Never);
         }
 
 

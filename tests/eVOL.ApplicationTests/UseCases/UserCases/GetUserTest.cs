@@ -23,23 +23,23 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             var fakeUser = new User
             {
-                UserId = 1,
+                UserId = Guid.Parse("00000000-0000-0000-0000-000000000001"),
             };
 
-            userRepoMock.Setup(u => u.GetUserById(1)).ReturnsAsync(fakeUser);
+            userRepoMock.Setup(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000001"))).ReturnsAsync(fakeUser);
 
             var sut = new GetUserHandler(uowMock.Object, loggerMock.Object);
 
             //Act
 
-            var result = await sut.Handle(new GetUserQuery(1), CancellationToken.None);
+            var result = await sut.Handle(new GetUserQuery(Guid.Parse("00000000-0000-0000-0000-000000000001")), CancellationToken.None);
 
             //Assert
 
             Assert.NotNull(result);
             Assert.Equal(fakeUser.UserId, result.UserId);
 
-            userRepoMock.Verify(u => u.GetUserById(1), Times.Once);
+            userRepoMock.Verify(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000001")), Times.Once);
 
         }
 
@@ -54,19 +54,19 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
 
-            userRepoMock.Setup(u => u.GetUserById(1)).ReturnsAsync((User?)null);
+            userRepoMock.Setup(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000001"))).ReturnsAsync((User?)null);
 
             var sut = new GetUserHandler(uowMock.Object, loggerMock.Object);
 
             //Act
 
-            var result = await sut.Handle(new GetUserQuery(1), CancellationToken.None);
+            var result = await sut.Handle(new GetUserQuery(Guid.Parse("00000000-0000-0000-0000-000000000001")), CancellationToken.None);
 
             //Assert
 
             Assert.Null(result);
 
-            userRepoMock.Verify(u => u.GetUserById(1), Times.Once);
+            userRepoMock.Verify(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000001")), Times.Once);
         }
     }
 }

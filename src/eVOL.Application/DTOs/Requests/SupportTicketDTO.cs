@@ -9,6 +9,6 @@ namespace eVOL.Application.DTOs.Requests
         [Required]
         public string Text { get; set; } = string.Empty;
         [Required]
-        public int OpenedBy { get; set; }
+        public Guid OpenedBy { get; set; }
     }
 }

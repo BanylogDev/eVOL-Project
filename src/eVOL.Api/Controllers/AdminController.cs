@@ -16,8 +16,8 @@ namespace eVOL.API.Controllers
         public AdminController(ISender sender) => _sender = sender;
 
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetUserInfo(int id)
+        [HttpGet("{id:guid}")]
+        public async Task<IActionResult> GetUserInfo(Guid id)
         {
             var user = await _sender.Send(new AdminGetUserQuery(id));
 
@@ -26,8 +26,8 @@ namespace eVOL.API.Controllers
             return Ok(user);
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(int id) 
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> DeleteUser(Guid id) 
         {
             var user = await _sender.Send(new AdminDeleteUserCommand(id));
 

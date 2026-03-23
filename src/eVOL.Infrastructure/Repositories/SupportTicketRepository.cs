@@ -37,7 +37,7 @@ namespace eVOL.Infrastructure.Repositories
             return supportTicket;
         } 
 
-        public async Task<SupportTicket?> GetSupportTicketById(int id)
+        public async Task<SupportTicket?> GetSupportTicketById(Guid id)
         {
 
             var cacheKey = $"supportTicket:{id}";
@@ -61,7 +61,7 @@ namespace eVOL.Infrastructure.Repositories
                 await _cacheService.SetAsync(
                     cacheKey,
                     JsonSerializer.Serialize(supportTicket),
-                    TimeSpan.FromMinutes(2));
+                    TimeSpan.FromMinutes(10));
             }
 
             return supportTicket;
@@ -91,7 +91,7 @@ namespace eVOL.Infrastructure.Repositories
                 await _cacheService.SetAsync(
                     cacheKey,
                     JsonSerializer.Serialize(supportTicket),
-                    TimeSpan.FromMinutes(2));
+                    TimeSpan.FromMinutes(10));
             }
 
             return supportTicket;

@@ -32,7 +32,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             var fakeUser = new User
             {
-                UserId = 1,
+                UserId = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                 Name = "username",
                 Email = "email",
                 Password = "hashedPassword",

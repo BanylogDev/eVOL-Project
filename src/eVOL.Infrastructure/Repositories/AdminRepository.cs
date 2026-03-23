@@ -21,7 +21,7 @@ namespace eVOL.Infrastructure.Repositories
             _logger = logger;
         }
 
-        public async Task<User?> GetUserInfoAsync(int id)
+        public async Task<User?> GetUserInfoAsync(Guid id)
         {
             var cacheKey = $"users:{id}";
 
@@ -37,14 +37,14 @@ namespace eVOL.Infrastructure.Repositories
 
             var user = await _context.Users
                 .AsNoTracking()
-                .FirstOrDefaultAsync(g => g.UserId == id);
+                .FirstOrDefaultAsync(u => u.UserId == id);
 
             if (user != null)
             {
                 await _cacheService.SetAsync(
                     cacheKey,
                     JsonSerializer.Serialize(user),
-                    TimeSpan.FromMinutes(2));
+                    TimeSpan.FromMinutes(10));
             }
 
             return user;

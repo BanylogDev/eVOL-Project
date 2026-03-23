@@ -34,26 +34,26 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
             var fakeUser = new User
             {
-                UserId = 1,
+                UserId = Guid.Parse("00000000-0000-0000-0000-000000000000"),
                 Name = "User"
             };
 
             var fakeChatGroup = new ChatGroup
             {
-                Id = 1,
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000000"),
                 Name = "TestGroup"
             };
 
             var Message = new ChatMessage
             {
                 Text = "Test",
-                SenderId = 1,
-                ReceiverId = 1,
+                SenderId = Guid.Parse("00000000-0000-0000-0000-000000000000"),
+                ReceiverId = Guid.Parse("00000000-0000-0000-0000-000000000000"),
                 CreatedAt = DateTime.UtcNow,
-                MessageId = 1,
+                MessageId = Guid.Parse("00000000-0000-0000-0000-000000000000"),
             };
 
-            userRepoMock.Setup(u => u.GetUserById(It.IsAny<int>()))
+            userRepoMock.Setup(u => u.GetUserById(It.IsAny<Guid>()))
                 .ReturnsAsync(fakeUser);
 
             chatGroupRepoMock.Setup(c => c.GetChatGroupByName(It.IsAny<string>()))
@@ -84,7 +84,7 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
             uowMysqlMock.Verify(u => u.RollbackAsync(), Times.Never);
 
-            userRepoMock.Verify(u => u.GetUserById(It.IsAny<int>()), Times.Once);
+            userRepoMock.Verify(u => u.GetUserById(It.IsAny<Guid>()), Times.Once);
 
             chatGroupRepoMock.Verify(c => c.GetChatGroupByName(It.IsAny<string>()), Times.Once);
 
@@ -116,11 +116,11 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
             var fakeUser = new User
             {
-                UserId = 1,
+                UserId = Guid.Parse("00000000-0000-0000-0000-000000000000"),
                 Name = "User"
             };
 
-            userRepoMock.Setup(u => u.GetUserById(It.IsAny<int>()))
+            userRepoMock.Setup(u => u.GetUserById(It.IsAny<Guid>()))
                 .ReturnsAsync((User?)null);
 
             chatGroupRepoMock.Setup(c => c.GetChatGroupByName(It.IsAny<string>()))
@@ -145,7 +145,7 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
             chatGroupRepoMock.Verify(c => c.GetChatGroupByName(It.IsAny<string>()), Times.Once);
 
-            userRepoMock.Verify(u => u.GetUserById(It.IsAny<int>()), Times.Once);
+            userRepoMock.Verify(u => u.GetUserById(It.IsAny<Guid>()), Times.Once);
 
             notificationRepoMock.Verify(c => c.Publish(It.IsAny<ChatMessage>()), Times.Never);
 
@@ -180,7 +180,7 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
             // Act & Assert
 
-            await Assert.ThrowsAsync<Exception>(async () => await sut.Handle(new SendChatGroupMessageCommand("Test Message", "TestGroup", 1), CancellationToken.None));
+            await Assert.ThrowsAsync<Exception>(async () => await sut.Handle(new SendChatGroupMessageCommand("Test Message", "TestGroup", Guid.Parse("00000000-0000-0000-0000-000000000000")), CancellationToken.None));
 
             uowMysqlMock.Verify(u => u.BeginTransactionAsync(), Times.Once);
 
@@ -190,7 +190,7 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
             chatGroupRepoMock.Verify(c => c.GetChatGroupByName(It.IsAny<string>()), Times.Once);
 
-            userRepoMock.Verify(u => u.GetUserById(It.IsAny<int>()), Times.Never);
+            userRepoMock.Verify(u => u.GetUserById(It.IsAny<Guid>()), Times.Never);
 
             notificationRepoMock.Verify(c => c.Publish(It.IsAny<ChatMessage>()), Times.Never);
 

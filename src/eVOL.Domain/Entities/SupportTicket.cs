@@ -2,15 +2,15 @@
 {
     public class SupportTicket
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Category { get; set; }
-        public string Text { get; set; }
-        public int OpenedById { get; set; }
-        public User OpenedBy { get; set; }
+        public Guid Id { get; set; }
+        public string? Name { get; set; }
+        public string? Category { get; set; }
+        public string? Text { get; set; }
+        public Guid OpenedById { get; set; }
+        public User? OpenedBy { get; set; }
 
-        public int ClaimedById { get; set; }
-        public User ClaimedBy { get; set; }
+        public Guid ClaimedById { get; set; }
+        public User? ClaimedBy { get; set; }
 
         public bool ClaimedStatus { get; set; }
         public DateTime CreatedAt { get; set; }

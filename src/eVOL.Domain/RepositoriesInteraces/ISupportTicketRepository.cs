@@ -6,7 +6,7 @@ namespace eVOL.Domain.RepositoriesInteraces
     {
         Task<SupportTicket> CreateSupportTicket(SupportTicket supportTicket);
         SupportTicket? DeleteSupportTicket(SupportTicket supportTicket);
-        Task<SupportTicket?> GetSupportTicketById(int id);
+        Task<SupportTicket?> GetSupportTicketById(Guid id);
         Task<SupportTicket?> GetSupportTicketByName(string name);
     }
 }

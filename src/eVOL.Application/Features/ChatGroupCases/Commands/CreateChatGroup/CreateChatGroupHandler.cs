@@ -28,6 +28,7 @@ namespace eVOL.Application.Features.ChatGroupCases.Commands.CreateChatGroup
 
                 var chatGroup = new ChatGroup
                 {
+                    Id = Guid.NewGuid(),
                     Name = request.Dto.Name,
                     TotalUsers = request.Dto.TotalUsers,
                     GroupUsers = request.Dto.GroupUsers,

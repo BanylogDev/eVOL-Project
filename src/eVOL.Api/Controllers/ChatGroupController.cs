@@ -45,8 +45,8 @@ namespace eVOL.API.Controllers
             return Ok(chatGroup);
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetChatGroupById(int id)
+        [HttpGet("{id:guid}")]
+        public async Task<IActionResult> GetChatGroupById(Guid id)
         {
             var chatGroup = await _sender.Send(new GetChatGroupByIdQuery(id));
 

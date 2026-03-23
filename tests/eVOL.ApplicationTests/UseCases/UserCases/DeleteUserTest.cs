@@ -28,18 +28,18 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             var fakeUser = new User
             {
-                UserId = 1,
+                UserId = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                 Password = "hashedPassword"
             };
 
             var fakeDeleteAccountDTO = new DeleteAccountDTO
             {
-                Id = 1,
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                 Password = "password",
                 ConfirmPassword = "password"
             };
 
-            userRepoMock.Setup(u => u.GetUserById(1)).ReturnsAsync(fakeUser);
+            userRepoMock.Setup(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000001"))).ReturnsAsync(fakeUser);
             userRepoMock.Setup(u => u.RemoveUser(fakeUser));
 
             passwordHasherMock.Setup(p => p.VerifyPassword(fakeDeleteAccountDTO.Password, fakeUser.Password)).Returns(true);
@@ -48,12 +48,12 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             //Act
 
-            var result = sut.Handle(new DeleteUserCommand(fakeDeleteAccountDTO), CancellationToken.None);
+            var result = await sut.Handle(new DeleteUserCommand(fakeDeleteAccountDTO), CancellationToken.None);
 
             //Assert
 
             Assert.NotNull(result);
-            Assert.Equal(fakeUser.UserId, result.Id);
+            Assert.Equal(fakeUser.UserId, result.UserId);
             Assert.Equal(fakeDeleteAccountDTO.Password, fakeDeleteAccountDTO.ConfirmPassword);
 
 
@@ -61,7 +61,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
             uowMock.Verify(u => u.CommitAsync(), Times.Once);
             uowMock.Verify(u => u.RollbackAsync(), Times.Never);
 
-            userRepoMock.Verify(u => u.GetUserById(1), Times.Once);
+            userRepoMock.Verify(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000001")), Times.Once);
             userRepoMock.Verify(u => u.RemoveUser(fakeUser), Times.Once);
 
         }
@@ -83,12 +83,12 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             var fakeDeleteAccountDTO = new DeleteAccountDTO
             {
-                Id = 1,
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                 Password = "password",
                 ConfirmPassword = "password"
             };
 
-            userRepoMock.Setup(u => u.GetUserById(1)).ReturnsAsync((User?)null);
+            userRepoMock.Setup(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000001"))).ReturnsAsync((User?)null);
 
             var sut = new DeleteUserHandler(uowMock.Object, passwordHasherMock.Object, loggerMock.Object);
 
@@ -104,7 +104,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
             uowMock.Verify(u => u.CommitAsync(), Times.Never);
             uowMock.Verify(u => u.RollbackAsync(), Times.Never);
 
-            userRepoMock.Verify(u => u.GetUserById(1), Times.Once);
+            userRepoMock.Verify(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000001")   ), Times.Once);
         }
 
         [Fact]
@@ -124,12 +124,12 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             var fakeDeleteAccountDTO = new DeleteAccountDTO
             {
-                Id = 1,
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                 Password = "password",
                 ConfirmPassword = "password"
             };
 
-            userRepoMock.Setup(u => u.GetUserById(1)).ThrowsAsync(new Exception("Database error"));
+            userRepoMock.Setup(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000001"))).ThrowsAsync(new Exception("Database error"));
 
             var sut = new DeleteUserHandler(uowMock.Object, passwordHasherMock.Object, loggerMock.Object);
 
@@ -141,7 +141,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
             uowMock.Verify(u => u.CommitAsync(), Times.Never);
             uowMock.Verify(u => u.RollbackAsync(), Times.Once);
 
-            userRepoMock.Verify(u => u.GetUserById(1), Times.Once);
+            userRepoMock.Verify(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000001")), Times.Once);
         }
 
     }

@@ -3,5 +3,5 @@ using MediatR;
 
 namespace eVOL.Application.Features.ChatGroupCases.Commands.AddUserToChatGroup
 {
-    public record AddUserToChatGroupCommand(int UserId, string ChatGroupName) : IRequest<User?>;
+    public record AddUserToChatGroupCommand(Guid UserId, string ChatGroupName) : IRequest<User?>;
 }

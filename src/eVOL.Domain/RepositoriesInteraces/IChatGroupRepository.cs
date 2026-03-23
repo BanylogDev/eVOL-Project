@@ -6,7 +6,7 @@ namespace eVOL.Domain.RepositoriesInteraces
     {
         Task<ChatGroup> CreateChatGroup(ChatGroup chatGroup);
         ChatGroup? DeleteChatGroup(ChatGroup chatGroup);
-        Task<ChatGroup?> GetChatGroupById(int chatGroupId);
+        Task<ChatGroup?> GetChatGroupById(Guid chatGroupId);
         Task<ChatGroup?> GetChatGroupByName(string chatGroupName);
     }
 }

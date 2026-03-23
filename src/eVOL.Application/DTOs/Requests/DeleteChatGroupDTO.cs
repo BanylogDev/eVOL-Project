@@ -5,8 +5,8 @@ namespace eVOL.Application.DTOs
     public sealed class DeleteChatGroupDTO
     {
         [Required]
-        public int ChatGroupId { get; set; }
+        public Guid ChatGroupId { get; set; }
         [Required]
-        public int ChatGroupOwnerId { get; set; }
+        public Guid ChatGroupOwnerId { get; set; }
     }
 }

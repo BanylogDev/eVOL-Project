@@ -28,13 +28,13 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             var fakeUser = new User
             {
-                UserId = 1,
+                UserId = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                 Name = "OldName",
                 Email = "OldEmail",
                 Password = "HashedNewPassword",
             };
 
-            userRepoMock.Setup(u => u.GetUserById(1)).ReturnsAsync(fakeUser);
+            userRepoMock.Setup(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000001"))).ReturnsAsync(fakeUser);
 
             passwordHasherMock.Setup(p => p.HashPassword("OldPassword")).Returns("HashedNewPassword");
 
@@ -48,7 +48,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             var result = await sut.Handle(new UpdateUserCommand(new UpdateDTO
             {
-                Id = 1,
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                 Name = "NewName",
                 Email = "NewEmail",
                 Password = "OldPassword",
@@ -65,7 +65,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
             uowMock.Verify(u => u.CommitAsync(), Times.Once);
             uowMock.Verify(u => u.RollbackAsync(), Times.Never);
 
-            userRepoMock.Verify(u => u.GetUserById(1), Times.Once);
+            userRepoMock.Verify(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000001")), Times.Once);
 
             passwordHasherMock.Verify(p => p.HashPassword("OldPassword"), Times.Exactly(2));
         }
@@ -83,7 +83,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
             uowMock.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
 
-            userRepoMock.Setup(u => u.GetUserById(1)).ReturnsAsync((User?)null);
+            userRepoMock.Setup(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000001"))).ReturnsAsync((User?)null);
 
             var sut = new UpdateUserHandler(
                 uowMock.Object,
@@ -95,7 +95,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             var result = await sut.Handle(new UpdateUserCommand(new UpdateDTO
             {
-                Id = 1,
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                 Name = "NewName",
                 Email = "NewEmail",
                 Password = "OldPassword",
@@ -108,7 +108,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
             
             uowMock.Verify(u => u.BeginTransactionAsync(), Times.Once);
 
-            userRepoMock.Verify(u => u.GetUserById(1), Times.Once);
+            userRepoMock.Verify(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000001")), Times.Once);
 
         }
 
@@ -126,7 +126,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
             uowMock.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
             uowMock.Setup(u => u.RollbackAsync()).Returns(Task.CompletedTask);
 
-            userRepoMock.Setup(u => u.GetUserById(1)).ThrowsAsync(new Exception("Database error"));
+            userRepoMock.Setup(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000001"))).ThrowsAsync(new Exception("Database error"));
 
             var sut = new UpdateUserHandler(
                 uowMock.Object,
@@ -140,7 +140,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
             {
                 await sut.Handle(new UpdateUserCommand(new UpdateDTO
                 {
-                    Id = 1,
+                    Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                     Name = "NewName",
                     Email = "NewEmail",
                     Password = "OldPassword",
@@ -151,7 +151,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
             uowMock.Verify(u => u.BeginTransactionAsync(), Times.Once);
             uowMock.Verify(u => u.RollbackAsync(), Times.Once);
 
-            userRepoMock.Verify(u => u.GetUserById(1), Times.Once);
+            userRepoMock.Verify(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000001")), Times.Once);
         }
     }
 }

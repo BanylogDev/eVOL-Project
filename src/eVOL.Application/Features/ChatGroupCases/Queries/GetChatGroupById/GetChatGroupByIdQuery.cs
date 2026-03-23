@@ -3,5 +3,5 @@ using MediatR;
 
 namespace eVOL.Application.Features.ChatGroupCases.Queries.GetChatGroupById
 {
-    public record GetChatGroupByIdQuery(int Id) : IRequest<ChatGroup?>;
+    public record GetChatGroupByIdQuery(Guid Id) : IRequest<ChatGroup?>;
 }

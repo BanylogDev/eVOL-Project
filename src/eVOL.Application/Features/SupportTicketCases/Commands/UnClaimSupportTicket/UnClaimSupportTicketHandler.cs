@@ -37,7 +37,7 @@ namespace eVOL.Application.Features.SupportTicketCases.Commands.UnClaimSupportTi
 
                 _logger.LogInformation("Unclaiming SupportTicket ID: {SupportTicketId} by User ID: {UserId}", request.Dto.Id, request.Dto.OpenedBy);
 
-                supportTicket.ClaimedById = 0;
+                supportTicket.ClaimedById = Guid.Parse("00000000-0000-0000-0000-000000000000");
                 supportTicket.ClaimedBy = user;
                 supportTicket.ClaimedStatus = false;
 

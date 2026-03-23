@@ -21,7 +21,7 @@ namespace eVOL.Infrastructure.Repositories
             _logger = logger;
         }
 
-        public async Task<ChatMessage?> GetChatMessageById(int id)
+        public async Task<ChatMessage?> GetChatMessageById(Guid id)
         {
 
             var cacheKey = $"chatMessage:{id}";
@@ -45,14 +45,14 @@ namespace eVOL.Infrastructure.Repositories
                 await _cacheService.SetAsync(
                     cacheKey,
                     JsonSerializer.Serialize(chatMessage),
-                    TimeSpan.FromMinutes(2));
+                    TimeSpan.FromMinutes(10));
             }
 
             return chatMessage;
 
         }
 
-        public async Task<ChatMessage?> GetChatMessageBySenderId(int id)
+        public async Task<ChatMessage?> GetChatMessageBySenderId(Guid id)
         {
             var cacheKey = $"chatMessage:{id}";
 
@@ -75,13 +75,13 @@ namespace eVOL.Infrastructure.Repositories
                 await _cacheService.SetAsync(
                     cacheKey,
                     JsonSerializer.Serialize(chatMessage),
-                    TimeSpan.FromMinutes(2));
+                    TimeSpan.FromMinutes(10));
             }
 
             return chatMessage;
         }
 
-        public async Task<ChatMessage?> GetChatMessageByReceiverId(int id)
+        public async Task<ChatMessage?> GetChatMessageByReceiverId(Guid id)
         {
             var cacheKey = $"chatMessage:{id}";
 
@@ -104,7 +104,7 @@ namespace eVOL.Infrastructure.Repositories
                 await _cacheService.SetAsync(
                     cacheKey,
                     JsonSerializer.Serialize(chatMessage),
-                    TimeSpan.FromMinutes(2));
+                    TimeSpan.FromMinutes(10));
             }
 
             return chatMessage;

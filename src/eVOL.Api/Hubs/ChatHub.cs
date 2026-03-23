@@ -19,7 +19,7 @@ namespace eVOL.API.Hubs
             _sender = sender;
         }
 
-        public async Task AddUserToGroup(string groupName, int userId)
+        public async Task AddUserToGroup(string groupName, Guid userId)
         {
 
             var user = await _sender.Send(new AddUserToChatGroupCommand(userId, groupName));
@@ -35,7 +35,7 @@ namespace eVOL.API.Hubs
             });
         }
 
-        public async Task LeaveGroup(string groupName, int userId)
+        public async Task LeaveGroup(string groupName, Guid userId)
         {
             var user = await _sender.Send(new LeaveChatGroupCommand(userId, groupName));
 
@@ -50,7 +50,7 @@ namespace eVOL.API.Hubs
             });
         }
 
-        public async Task RemoveUserFromGroup(string groupName, int userId)
+        public async Task RemoveUserFromGroup(string groupName, Guid userId)
         {
             var user = await _sender.Send(new RemoveUserFromChatGroupCommand(userId, groupName));
 
@@ -65,7 +65,7 @@ namespace eVOL.API.Hubs
             });
         }
 
-        public async Task SendGroupMessage(string groupName, int userId, string message)
+        public async Task SendGroupMessage(string groupName, Guid userId, string message)
         {
             (ChatMessage? newMessage, User? user) = await _sender.Send(new SendChatGroupMessageCommand(message, groupName, userId));
 
@@ -74,7 +74,7 @@ namespace eVOL.API.Hubs
             await Clients.Group(groupName).SendAsync("ReceiveGroupCustomMessage", user.Name, newMessage);
         }
 
-        public async Task SendSupportTicketMessage(string supportTicketName, int userId, string message)
+        public async Task SendSupportTicketMessage(string supportTicketName, Guid userId, string message)
         {
             (ChatMessage? newMessage, User? user) = await _sender.Send(new SendSupportTicketMessageCommand(message, supportTicketName, userId));
 

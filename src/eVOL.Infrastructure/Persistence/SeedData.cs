@@ -35,7 +35,7 @@ namespace eVOL.Infrastructure.Persistence
                 {
                     var adminUser = new User
                     {
-                        UserId = 11,
+                        UserId = Guid.Parse("92004000-0000-0000-0000-000000000001"),
                         Name = "admin",
                         Email = "admin@evol.com",
                         Password = _passwordHasher.HashPassword("Admin123!"),
@@ -45,7 +45,7 @@ namespace eVOL.Infrastructure.Persistence
 
                     var sampleUser = new User
                     {
-                        UserId = 12,
+                        UserId = Guid.Parse("10000000-0000-0000-0000-000000000000"),
                         Name = "Sample User",
                         Email = "sampleuser@evol.com",
                         Password = _passwordHasher.HashPassword("sampleUser123!"),
@@ -63,9 +63,9 @@ namespace eVOL.Infrastructure.Persistence
                 {
                     await _context.ChatGroups.AddAsync(new ChatGroup
                     {
-                        Id = 1,
+                        Id = Guid.Parse("10000000-0000-0000-0000-000000000000"),
                         Name = "General",
-                        OwnerId = 1,
+                        OwnerId = Guid.Parse("92004000-0000-0000-0000-000000000001"),
                         CreatedAt = DateTime.UtcNow,
                         TotalUsers = 1,
                         GroupUsers = new List<User>()
@@ -78,13 +78,13 @@ namespace eVOL.Infrastructure.Persistence
                 {
                     await _context.SupportTickets.AddAsync(new SupportTicket
                     {
-                        Id = 1,
+                        Id = Guid.Parse("10000000-0000-0000-0000-000000000000"),
                         Name = "General",
                         Category = "Test",
                         ClaimedStatus = false,
                         CreatedAt = DateTime.UtcNow,
-                        OpenedById = 2,
-                        ClaimedById = 1,
+                        OpenedById = Guid.Parse("10000000-0000-0000-0000-000000000000"),
+                        ClaimedById = Guid.Parse("92004000-0000-0000-0000-000000000001"),
                         Text = "Test",
                         SupportTicketUsers = new List<User>()
                     });

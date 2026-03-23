@@ -46,8 +46,8 @@ namespace eVOL.API.Controllers
             return Ok(new { message = "Account has been deleted successfully", user.Name });
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetUser(int id)
+        [HttpGet("{id:guid}")]
+        public async Task<IActionResult> GetUser(Guid id)
         {
             var user = await _sender.Send(new GetUserQuery(id));
 

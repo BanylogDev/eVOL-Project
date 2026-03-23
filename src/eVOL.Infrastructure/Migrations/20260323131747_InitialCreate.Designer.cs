@@ -12,7 +12,7 @@ using eVOL.Infrastructure.Data;
 namespace eVOL.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260322224003_InitialCreate")]
+    [Migration("20260323131747_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -27,11 +27,11 @@ namespace eVOL.Infrastructure.Migrations
 
             modelBuilder.Entity("ChatGroupUser", b =>
                 {
-                    b.Property<int>("ChatGroupsId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("ChatGroupsId")
+                        .HasColumnType("uuid");
 
-                    b.Property<int>("GroupUsersUserId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("GroupUsersUserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("ChatGroupsId", "GroupUsersUserId");
 
@@ -42,11 +42,11 @@ namespace eVOL.Infrastructure.Migrations
 
             modelBuilder.Entity("SupportTicketUser", b =>
                 {
-                    b.Property<int>("SupportTicketUsersUserId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("SupportTicketUsersUserId")
+                        .HasColumnType("uuid");
 
-                    b.Property<int>("SupportTicketsId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("SupportTicketsId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("SupportTicketUsersUserId", "SupportTicketsId");
 
@@ -57,11 +57,9 @@ namespace eVOL.Infrastructure.Migrations
 
             modelBuilder.Entity("eVOL.Domain.Entities.ChatGroup", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -71,8 +69,8 @@ namespace eVOL.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<int>("OwnerId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
 
                     b.Property<int>("TotalUsers")
                         .HasColumnType("integer");
@@ -84,20 +82,18 @@ namespace eVOL.Infrastructure.Migrations
 
             modelBuilder.Entity("eVOL.Domain.Entities.ChatMessage", b =>
                 {
-                    b.Property<int>("MessageId")
+                    b.Property<Guid>("MessageId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MessageId"));
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("ReceiverId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("ReceiverId")
+                        .HasColumnType("uuid");
 
-                    b.Property<int>("SenderId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("SenderId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Text")
                         .IsRequired()
@@ -115,19 +111,17 @@ namespace eVOL.Infrastructure.Migrations
 
             modelBuilder.Entity("eVOL.Domain.Entities.SupportTicket", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Category")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<int>("ClaimedById")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("ClaimedById")
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("ClaimedStatus")
                         .HasColumnType("boolean");
@@ -140,8 +134,8 @@ namespace eVOL.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<int>("OpenedById")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("OpenedById")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Text")
                         .IsRequired()
@@ -159,11 +153,9 @@ namespace eVOL.Infrastructure.Migrations
 
             modelBuilder.Entity("eVOL.Domain.Entities.User", b =>
                 {
-                    b.Property<int>("UserId")
+                    b.Property<Guid>("UserId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("UserId"));
+                        .HasColumnType("uuid");
 
                     b.Property<string>("AccessToken")
                         .IsRequired()
@@ -267,8 +259,8 @@ namespace eVOL.Infrastructure.Migrations
                 {
                     b.OwnsOne("eVOL.Domain.ValueObjects.Address", "Address", b1 =>
                         {
-                            b1.Property<int>("UserId")
-                                .HasColumnType("integer");
+                            b1.Property<Guid>("UserId")
+                                .HasColumnType("uuid");
 
                             b1.Property<string>("AddressName")
                                 .IsRequired()
@@ -300,8 +292,8 @@ namespace eVOL.Infrastructure.Migrations
 
                     b.OwnsOne("eVOL.Domain.ValueObjects.Money", "Money", b1 =>
                         {
-                            b1.Property<int>("UserId")
-                                .HasColumnType("integer");
+                            b1.Property<Guid>("UserId")
+                                .HasColumnType("uuid");
 
                             b1.Property<double>("Balance")
                                 .HasColumnType("decimal(18,2)");

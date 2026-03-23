@@ -28,7 +28,7 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
             var fakeChatGroup = new ChatGroup
             {
-                Id = 1,
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000000"),
                 Name = "ChatGroup",
             };
 
@@ -41,7 +41,7 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
             var result = await sut.Handle(new CreateChatGroupCommand( new ChatGroupDTO
             {
                 Name = "ChatGroup",
-                OwnerId = 2,
+                OwnerId = Guid.Parse("00000000-0000-0000-0000-000000000002"),
                 TotalUsers = 1,
                 GroupUsers = new List<User>()
             }), CancellationToken.None);

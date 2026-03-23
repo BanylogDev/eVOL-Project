@@ -29,19 +29,19 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
             var fakeChatGroup = new ChatGroup
             {
-                Id = 1,
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000000"),
                 Name = "TestGroup",
-                OwnerId = 2,
+                OwnerId = Guid.Parse("00000000-0000-0000-0000-000000000001"),
             };
 
-            chatGroupRepoMock.Setup(c => c.GetChatGroupById(1)).ReturnsAsync(fakeChatGroup);
+            chatGroupRepoMock.Setup(c => c.GetChatGroupById(Guid.Parse("00000000-0000-0000-0000-000000000000"))).ReturnsAsync(fakeChatGroup);
             chatGroupRepoMock.Setup(c => c.DeleteChatGroup(fakeChatGroup));
 
             var sut = new DeleteChatGroupHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.Handle(new DeleteChatGroupCommand(new DeleteChatGroupDTO { ChatGroupId=1, ChatGroupOwnerId=2 }), CancellationToken.None);
+            var result = await sut.Handle(new DeleteChatGroupCommand(new DeleteChatGroupDTO { ChatGroupId= Guid.Parse("00000000-0000-0000-0000-000000000000"), ChatGroupOwnerId= Guid.Parse("00000000-0000-0000-0000-000000000001") }), CancellationToken.None);
 
             // Assert
 
@@ -52,7 +52,7 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
             uowMock.Verify(u => u.CommitAsync(), Times.Once);
             uowMock.Verify(u => u.RollbackAsync(), Times.Never);
 
-            chatGroupRepoMock.Verify(c => c.GetChatGroupById(1), Times.Once);
+            chatGroupRepoMock.Verify(c => c.GetChatGroupById(Guid.Parse("00000000-0000-0000-0000-000000000000")), Times.Once);
             chatGroupRepoMock.Verify(c => c.DeleteChatGroup(fakeChatGroup), Times.Once);
         }
 
@@ -71,13 +71,13 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
             uowMock.Setup(u => u.CommitAsync()).Returns(Task.CompletedTask);
             uowMock.Setup(u => u.RollbackAsync()).Returns(Task.CompletedTask);
 
-            chatGroupRepoMock.Setup(c => c.GetChatGroupById(1)).ReturnsAsync((ChatGroup?)null);
+            chatGroupRepoMock.Setup(c => c.GetChatGroupById(Guid.Parse("00000000-0000-0000-0000-000000000000"))).ReturnsAsync((ChatGroup?)null);
 
             var sut = new DeleteChatGroupHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.Handle(new DeleteChatGroupCommand(new DeleteChatGroupDTO { ChatGroupId = 1, ChatGroupOwnerId = 2 }), CancellationToken.None);
+            var result = await sut.Handle(new DeleteChatGroupCommand(new DeleteChatGroupDTO { ChatGroupId = Guid.Parse("00000000-0000-0000-0000-000000000000"), ChatGroupOwnerId = Guid.Parse("00000000-0000-0000-0000-000000000001") }), CancellationToken.None);
 
             // Assert
 
@@ -87,7 +87,7 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
             uowMock.Verify(u => u.CommitAsync(), Times.Never);
             uowMock.Verify(u => u.RollbackAsync(), Times.Never);
 
-            chatGroupRepoMock.Verify(c => c.GetChatGroupById(1), Times.Once);
+            chatGroupRepoMock.Verify(c => c.GetChatGroupById(Guid.Parse("00000000-0000-0000-0000-000000000000")), Times.Once);
             chatGroupRepoMock.Verify(c => c.DeleteChatGroup(It.IsAny<ChatGroup>()), Times.Never);
         }
 
@@ -106,19 +106,19 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
             uowMock.Setup(u => u.CommitAsync()).Returns(Task.CompletedTask);
             uowMock.Setup(u => u.RollbackAsync()).Returns(Task.CompletedTask);
 
-            chatGroupRepoMock.Setup(c => c.GetChatGroupById(1)).ThrowsAsync(new Exception("Database error"));
+            chatGroupRepoMock.Setup(c => c.GetChatGroupById(Guid.Parse("00000000-0000-0000-0000-000000000000"))).ThrowsAsync(new Exception("Database error"));
 
             var sut = new DeleteChatGroupHandler(uowMock.Object, loggerMock.Object);
 
             // Act & Assert
 
-            await Assert.ThrowsAsync<Exception>(async () => await sut.Handle(new DeleteChatGroupCommand(new DeleteChatGroupDTO { ChatGroupId = 1, ChatGroupOwnerId = 2 }), CancellationToken.None));
+            await Assert.ThrowsAsync<Exception>(async () => await sut.Handle(new DeleteChatGroupCommand(new DeleteChatGroupDTO { ChatGroupId = Guid.Parse("00000000-0000-0000-0000-000000000000"), ChatGroupOwnerId = Guid.Parse("00000000-0000-0000-0000-000000000001") }), CancellationToken.None));
 
             uowMock.Verify(u => u.BeginTransactionAsync(), Times.Once);
             uowMock.Verify(u => u.CommitAsync(), Times.Never);
             uowMock.Verify(u => u.RollbackAsync(), Times.Once);
 
-            chatGroupRepoMock.Verify(c => c.GetChatGroupById(1), Times.Once);
+            chatGroupRepoMock.Verify(c => c.GetChatGroupById(Guid.Parse("00000000-0000-0000-0000-000000000000")), Times.Once);
         }
 
     }

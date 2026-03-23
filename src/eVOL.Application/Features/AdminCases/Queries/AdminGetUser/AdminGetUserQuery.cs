@@ -3,6 +3,6 @@ using MediatR;
 
 namespace eVOL.Application.Features.AdminCases.Queries.AdminGetUser
 {
-    public record AdminGetUserQuery(int Id) : IRequest<User?>;
+    public record AdminGetUserQuery(Guid Id) : IRequest<User?>;
 
 }

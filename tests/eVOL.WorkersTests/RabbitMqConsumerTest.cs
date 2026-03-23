@@ -24,10 +24,10 @@ namespace eVOL.WorkersTests
             var chatMessage = new ChatMessage
             {
                 Text = "Test",
-                SenderId = 1,
-                ReceiverId = 1,
+                SenderId = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+                ReceiverId = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                 CreatedAt = DateTime.UtcNow,
-                MessageId = 1,
+                MessageId = Guid.Parse("00000000-0000-0000-0000-000000000001"),
             };
 
             uowMock.Setup(u => u.Message.AddChatMessageToDb(chatMessage));

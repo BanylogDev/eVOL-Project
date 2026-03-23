@@ -36,8 +36,8 @@ namespace eVOL.API.Controllers
             return Ok(supportTicket);
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteSupportTicket(int id)
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> DeleteSupportTicket(Guid id)
         {
             var supportTicket = await _sender.Send(new DeleteSupportTicketCommand(id));
 
@@ -46,8 +46,8 @@ namespace eVOL.API.Controllers
             return Ok(supportTicket);
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetSupportTicketById(int id)
+        [HttpGet("{id:guid}")]
+        public async Task<IActionResult> GetSupportTicketById(Guid id)
         {
             var supportTicket = await _sender.Send(new GetSupportTicketByIdQuery(id));
 

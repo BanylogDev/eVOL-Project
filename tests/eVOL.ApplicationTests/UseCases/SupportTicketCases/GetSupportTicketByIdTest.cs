@@ -21,23 +21,23 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 
             var fakeSupportTicket = new SupportTicket
             {
-                Id = 1,
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
             };
 
-            supportTicketRepoMock.Setup(s => s.GetSupportTicketById(1)).ReturnsAsync(fakeSupportTicket);
+            supportTicketRepoMock.Setup(s => s.GetSupportTicketById(Guid.Parse("00000000-0000-0000-0000-000000000001"))).ReturnsAsync(fakeSupportTicket);
 
             var sut = new GetSupportTicketByIdHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.Handle(new GetSupportTicketByIdQuery(1), CancellationToken.None);
+            var result = await sut.Handle(new GetSupportTicketByIdQuery(Guid.Parse("00000000-0000-0000-0000-000000000001")), CancellationToken.None);
 
             // Assert
 
             Assert.NotNull(result);
             Assert.Equal(fakeSupportTicket.Id, result.Id);
 
-            supportTicketRepoMock.Verify(s =>  s.GetSupportTicketById(1), Times.Once());
+            supportTicketRepoMock.Verify(s =>  s.GetSupportTicketById(Guid.Parse("00000000-0000-0000-0000-000000000001")), Times.Once());
         }
 
         [Fact]
@@ -53,22 +53,22 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 
             var fakeSupportTicket = new SupportTicket
             {
-                Id = 1,
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
             };
 
-            supportTicketRepoMock.Setup(s => s.GetSupportTicketById(1)).ReturnsAsync((SupportTicket?)null);
+            supportTicketRepoMock.Setup(s => s.GetSupportTicketById(Guid.Parse("00000000-0000-0000-0000-000000000001"))).ReturnsAsync((SupportTicket?)null);
 
             var sut = new GetSupportTicketByIdHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.Handle(new GetSupportTicketByIdQuery(1), CancellationToken.None);
+            var result = await sut.Handle(new GetSupportTicketByIdQuery(Guid.Parse("00000000-0000-0000-0000-000000000001")), CancellationToken.None);
 
             // Assert
 
             Assert.Null(result);
 
-            supportTicketRepoMock.Verify(s => s.GetSupportTicketById(1), Times.Once());
+            supportTicketRepoMock.Verify(s => s.GetSupportTicketById(Guid.Parse("00000000-0000-0000-0000-000000000001")), Times.Once());
         }
     }
 }

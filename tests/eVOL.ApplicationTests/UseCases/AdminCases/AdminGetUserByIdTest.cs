@@ -22,23 +22,23 @@ namespace eVOL.ApplicationTests.UseCases.AdminCases
 
             var fakeUser = new User
             {
-                UserId = 1
+                UserId = Guid.Parse("00000000-0000-0000-0000-000000000000")
             };
 
-            userRepoMock.Setup(u => u.GetUserById(1)).ReturnsAsync(fakeUser);
+            userRepoMock.Setup(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000000"))).ReturnsAsync(fakeUser);
 
             var sut = new AdminGetUserHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.Handle(new AdminGetUserQuery(1), CancellationToken.None);
+            var result = await sut.Handle(new AdminGetUserQuery(Guid.Parse("00000000-0000-0000-0000-000000000000")), CancellationToken.None);
 
             // Assert
 
             Assert.NotNull(result);
             Assert.Equal(fakeUser.UserId, result.UserId);
 
-            userRepoMock.Verify(u => u.GetUserById(1), Times.Once);
+            userRepoMock.Verify(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000000")), Times.Once);
         }
 
         [Fact]
@@ -51,19 +51,19 @@ namespace eVOL.ApplicationTests.UseCases.AdminCases
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
 
-            userRepoMock.Setup(u => u.GetUserById(1)).ReturnsAsync((User?)null);
+            userRepoMock.Setup(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000000"))).ReturnsAsync((User?)null);
 
             var sut = new AdminGetUserHandler(uowMock.Object, loggerMock.Object);
 
             // Act
 
-            var result = await sut.Handle(new AdminGetUserQuery(1), CancellationToken.None);
+            var result = await sut.Handle(new AdminGetUserQuery(Guid.Parse("00000000-0000-0000-0000-000000000000")), CancellationToken.None);
 
             // Assert
 
             Assert.Null(result);
 
-            userRepoMock.Verify(u => u.GetUserById(1), Times.Once);
+            userRepoMock.Verify(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000000")), Times.Once);
         }
     }
 }
