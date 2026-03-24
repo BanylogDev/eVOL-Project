@@ -1,4 +1,5 @@
-﻿using eVOL.Application.DTOs;
+﻿using Asp.Versioning;
+using eVOL.Application.DTOs;
 using eVOL.Application.DTOs.Requests;
 using eVOL.Application.Features.UserCases.Commands.LoginUser;
 using eVOL.Application.Features.UserCases.Commands.RefreshToken;
@@ -6,10 +7,11 @@ using eVOL.Application.Features.UserCases.Commands.RegisterUser;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BankApi_Clean_Architecture.Controllers
+namespace eVOL.API.Controllers.v1
 {
     [ApiController]
-    [Route("api/auth")]
+    [Route("api/{version:apiVersion}/auth")]
+    [ApiVersion("1.0")]
     public class AuthController : ControllerBase
     {
         private readonly ISender _sender;

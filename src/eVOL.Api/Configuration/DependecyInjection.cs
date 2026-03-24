@@ -1,4 +1,5 @@
-﻿using eVOL.Application.Mappings;
+﻿using Asp.Versioning.Conventions;
+using eVOL.Application.Mappings;
 using eVOL.Application.Messaging.Interfaces;
 using eVOL.Application.ServicesInterfaces;
 using eVOL.Domain.RepositoriesInteraces;
@@ -23,21 +24,19 @@ namespace eVOL.API.Configuration
 
         public static IServiceCollection AddCaching(this IServiceCollection services, IConfiguration configuration)
         {
+            var redisConnectionString = configuration.GetConnectionString("RedisConnection");
 
-            var redisConnectionString = configuration["CacheSettings:RedisConnection"];
+            if (string.IsNullOrWhiteSpace(redisConnectionString))
+                throw new InvalidOperationException("Redis connection string 'RedisConnection' was not found.");
+
             var options = ConfigurationOptions.Parse(redisConnectionString);
             options.AbortOnConnectFail = false;
 
             services.AddSingleton<IConnectionMultiplexer>(
-                ConnectionMultiplexer.Connect(options)
+                _ => ConnectionMultiplexer.Connect(options)
             );
 
-            services.AddSingleton<IConnectionMultiplexer>(
-                ConnectionMultiplexer.Connect(options)
-            );
-
-            var redisConnection = configuration["CacheSettings:RedisConnection"];
-            services.AddSignalR().AddStackExchangeRedis(redisConnection, opts =>
+            services.AddSignalR().AddStackExchangeRedis(redisConnectionString, opts =>
             {
                 opts.Configuration.ChannelPrefix = "evol.signalr";
             });
@@ -47,16 +46,22 @@ namespace eVOL.API.Configuration
 
         public static IServiceCollection AddDatabases(this IServiceCollection services, IConfiguration configuration)
         {
+            var postgresConnection = configuration.GetConnectionString("DefaultConnection");
+            if (string.IsNullOrWhiteSpace(postgresConnection))
+                throw new InvalidOperationException("Connection string 'DefaultConnection' was not found.");
+
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(
-                    configuration.GetConnectionString("DefaultConnection")
-                )
-            );
+                options.UseNpgsql(postgresConnection));
+
+            var mongoConnection = configuration.GetConnectionString("MongoDB");
+            if (string.IsNullOrWhiteSpace(mongoConnection))
+                throw new InvalidOperationException("Connection string 'MongoDB' was not found.");
+
+            services.AddSingleton<IMongoClient>(_ => new MongoClient(mongoConnection));
 
             services.AddSingleton<MongoDbContext>(sp =>
             {
-                var config = configuration;
-                var connectionString = config.GetConnectionString("MongoDB");
+                var connectionString = configuration.GetConnectionString("MongoDB");
                 return new MongoDbContext(connectionString, "eVOLChat");
             });
 
@@ -159,6 +164,25 @@ namespace eVOL.API.Configuration
             services.AddScoped<SeedData>();
 
 
+            return services;
+        }
+
+        public static IServiceCollection AddApiVersioningService(this IServiceCollection services)
+        {
+            services.AddApiVersioning(options =>
+            {
+                options.AssumeDefaultVersionWhenUnspecified = true;
+                options.DefaultApiVersion = new Asp.Versioning.ApiVersion(1, 0);
+                options.ReportApiVersions = true;
+            }).AddMvc(options =>
+            {
+                options.Conventions.Add(new VersionByNamespaceConvention());
+            }).AddApiExplorer(options =>
+            {
+                options.GroupNameFormat = "'v'V";
+                options.SubstituteApiVersionInUrl = true;
+
+            });
             return services;
         }
 

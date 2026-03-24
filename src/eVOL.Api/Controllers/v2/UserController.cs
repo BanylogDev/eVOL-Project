@@ -1,4 +1,5 @@
-﻿using eVOL.Application.DTOs.Requests;
+﻿using Asp.Versioning;
+using eVOL.Application.DTOs.Requests;
 using eVOL.Application.Features.UserCases.Commands.DeleteUser;
 using eVOL.Application.Features.UserCases.Commands.UpdateUser;
 using eVOL.Application.Features.UserCases.Queries.GetUser;
@@ -6,10 +7,11 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace eVOL.API.Controllers
+namespace eVOL.API.Controllers.v2
 {
-    [Route("api/user")]
     [ApiController]
+    [Route("api/{version:apiVersion}/user")]
+    [ApiVersion("2.0")]
     [Authorize(Roles = "User,Admin")]
     public class UserController : ControllerBase
     {

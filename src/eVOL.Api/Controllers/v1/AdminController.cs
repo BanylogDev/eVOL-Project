@@ -1,13 +1,15 @@
-﻿using eVOL.Application.Features.AdminCases.Commands.AdminDeleteUser;
+﻿using Asp.Versioning;
+using eVOL.Application.Features.AdminCases.Commands.AdminDeleteUser;
 using eVOL.Application.Features.AdminCases.Queries.AdminGetUser;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace eVOL.API.Controllers
+namespace eVOL.API.Controllers.v1
 {
-    [Route("api/admin")]
     [ApiController]
+    [Route("api/{version:apiVersion}/admin")]
+    [ApiVersion("1.0")]
     [Authorize(Roles = "Admin")]
     public class AdminController : ControllerBase
     {

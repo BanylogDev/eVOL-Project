@@ -1,6 +1,5 @@
 using eVOL.API.Configuration;
 using eVOL.API.Hubs;
-using eVOL.Infrastructure.Persistence;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -12,10 +11,12 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.WithThreadId()
     .Enrich.WithCorrelationId()
     .WriteTo.Console()
-    .WriteTo.Seq("http://evol.seq:80")
+    //.WriteTo.Seq("http://evol.seq:80")
     .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.AddServiceDefaults();
 
 builder.Host.UseSerilog();
 
@@ -28,9 +29,12 @@ builder.Services
     .AddMapper()
     .AddMediatorService()
     .AddScopedUseCases()
+    .AddApiVersioningService()
     .AddRateLimiterService();
 
 var app = builder.Build();
+
+app.MapDefaultEndpoints();
 
 app.UseSwagger();
 app.UseSwaggerUI();
@@ -47,8 +51,8 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<ChatHub>("/chat-hub");
 
-using var scope = app.Services.CreateScope();
-var seeder = scope.ServiceProvider.GetRequiredService<SeedData>();
-await seeder.InitializeAsync();
+//using var scope = app.Services.CreateScope();
+//var seeder = scope.ServiceProvider.GetRequiredService<SeedData>();
+//await seeder.InitializeAsync();
 
 app.Run();

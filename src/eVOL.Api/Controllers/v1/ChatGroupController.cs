@@ -1,4 +1,5 @@
-﻿using eVOL.Application.DTOs;
+﻿using Asp.Versioning;
+using eVOL.Application.DTOs;
 using eVOL.Application.DTOs.Requests;
 using eVOL.Application.Features.ChatGroupCases.Commands.CreateChatGroup;
 using eVOL.Application.Features.ChatGroupCases.Commands.DeleteChatGroup;
@@ -8,10 +9,11 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace eVOL.API.Controllers
+namespace eVOL.API.Controllers.v1
 {
     [ApiController]
-    [Route("api/chat-group")]
+    [Route("api/{version:apiVersion}/chat-group")]
+    [ApiVersion("1.0")]
     [Authorize(Roles = "User,Admin")]
     public class ChatGroupController : ControllerBase
     {
