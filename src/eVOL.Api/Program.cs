@@ -30,7 +30,8 @@ builder.Services
     .AddMediatorService()
     .AddScopedUseCases()
     .AddApiVersioningService()
-    .AddRateLimiterService();
+    .AddRateLimiterService()
+    .AddOptionsService();
 
 var app = builder.Build();
 

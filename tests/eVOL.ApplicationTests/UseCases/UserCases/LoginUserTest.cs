@@ -3,11 +3,11 @@ using eVOL.Domain.RepositoriesInteraces;
 using eVOL.Application.ServicesInterfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Mapster;
 using eVOL.Domain.Entities;
-using eVOL.Application.DTOs.Responses.User;
 using eVOL.Application.DTOs;
 using eVOL.Application.Features.UserCases.Commands.LoginUser;
+using Microsoft.Extensions.Options;
+using eVOL.Application.Options;
 
 
 namespace eVOL.ApplicationTests.UseCases.UserCases
@@ -23,7 +23,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
             var userRepoMock = new Mock<IUserRepository>();
             var passwordHasherMock = new Mock<IPasswordHasher>();
             var jwtServiceMock = new Mock<IJwtService>();
-            var configMock = new Mock<IConfiguration>();
+            var optionsMock = new Mock<IOptions<JwtOptions>>();
             var loggerMock = new Mock<ILogger<LoginUserHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
@@ -44,14 +44,14 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             passwordHasherMock.Setup(p => p.VerifyPassword("password", "hashedPassword")).Returns(true);
 
-            jwtServiceMock.Setup(j => j.GenerateJwtToken(fakeUser, It.IsAny<IConfiguration>())).Returns("accessToken");
+            jwtServiceMock.Setup(j => j.GenerateJwtToken(fakeUser, It.IsAny<IOptions<JwtOptions>>())).Returns("accessToken");
             jwtServiceMock.Setup(j => j.GenerateRefreshToken()).Returns("refresh");
 
             var sut = new LoginUserHandler(
                 uowMock.Object,
                 passwordHasherMock.Object,
                 jwtServiceMock.Object,
-                configMock.Object,
+                optionsMock.Object,
                 loggerMock.Object
             );
 
@@ -77,7 +77,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             passwordHasherMock.Verify(p => p.VerifyPassword("password", "hashedPassword"), Times.Once);
 
-            jwtServiceMock.Verify(j => j.GenerateJwtToken(fakeUser, It.IsAny<IConfiguration>()), Times.Once);
+            jwtServiceMock.Verify(j => j.GenerateJwtToken(fakeUser, It.IsAny<IOptions<JwtOptions>>()), Times.Once);
             jwtServiceMock.Verify(j => j.GenerateRefreshToken(), Times.Once);
 
         }
@@ -91,7 +91,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
             var userRepoMock = new Mock<IUserRepository>();
             var passwordHasherMock = new Mock<IPasswordHasher>();
             var jwtServiceMock = new Mock<IJwtService>();
-            var configMock = new Mock<IConfiguration>();
+            var optionsMock = new Mock<IOptions<JwtOptions>>();
             var loggerMock = new Mock<ILogger<LoginUserHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
@@ -103,7 +103,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
                 uowMock.Object,
                 passwordHasherMock.Object,
                 jwtServiceMock.Object,
-                configMock.Object,
+                optionsMock.Object,
                 loggerMock.Object
             );
 
@@ -133,7 +133,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
             var userRepoMock = new Mock<IUserRepository>();
             var passwordHasherMock = new Mock<IPasswordHasher>();
             var jwtServiceMock = new Mock<IJwtService>();
-            var configMock = new Mock<IConfiguration>();
+            var optionsMock = new Mock<IOptions<JwtOptions>>();
             var loggerMock = new Mock<ILogger<LoginUserHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
@@ -148,7 +148,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
                 uowMock.Object,
                 passwordHasherMock.Object,
                 jwtServiceMock.Object,
-                configMock.Object,
+                optionsMock.Object,
                 loggerMock.Object
             );
 

@@ -1,6 +1,7 @@
 ﻿using Asp.Versioning.Conventions;
 using eVOL.Application.Mappings;
 using eVOL.Application.Messaging.Interfaces;
+using eVOL.Application.Options;
 using eVOL.Application.ServicesInterfaces;
 using eVOL.Domain.RepositoriesInteraces;
 using eVOL.Infrastructure.Data;
@@ -216,6 +217,19 @@ namespace eVOL.API.Configuration
                         });
                 });
             });
+
+            return services;
+        }
+
+        public static IServiceCollection AddOptionsService(this IServiceCollection services)
+        {
+            services.AddOptions<JwtOptions>()
+                .BindConfiguration("Jwt")
+                .Validate(options =>
+                    !string.IsNullOrWhiteSpace(options.Key) &&
+                    !string.IsNullOrWhiteSpace(options.Issuer) &&
+                    !string.IsNullOrWhiteSpace(options.Audience),
+                    "Jwt configuration is invalid. Please ensure 'Key', 'Issuer', and 'Audience' are provided.");
 
             return services;
         }

@@ -1,9 +1,11 @@
 ﻿using eVOL.Application.DTOs.Requests;
+using eVOL.Application.Options;
 using eVOL.Application.ServicesInterfaces;
 using eVOL.Domain.RepositoriesInteraces;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace eVOL.Application.Features.UserCases.Commands.RefreshToken
 {
@@ -12,14 +14,14 @@ namespace eVOL.Application.Features.UserCases.Commands.RefreshToken
 
         private readonly IJwtService _jwtService;
         private readonly IPostgreUnitOfWork _uow;
-        private readonly IConfiguration _config;
+        private readonly IOptions<JwtOptions> _options;
         private readonly ILogger<RefreshTokenHandler> _logger;
 
-        public RefreshTokenHandler(IJwtService jwtService, IPostgreUnitOfWork uow, IConfiguration config, ILogger<RefreshTokenHandler> logger)
+        public RefreshTokenHandler(IJwtService jwtService, IPostgreUnitOfWork uow, IOptions<JwtOptions> options, ILogger<RefreshTokenHandler> logger)
         {
             _jwtService = jwtService;
             _uow = uow;
-            _config = config;
+            _options = options;
             _logger = logger;
         }
 
@@ -32,7 +34,7 @@ namespace eVOL.Application.Features.UserCases.Commands.RefreshToken
             try
             {
                 _logger.LogInformation("Validating expired access token");
-                var principal = _jwtService.GetPrincipalFromExpiredToken(request.Dto.AccessToken, _config);
+                var principal = _jwtService.GetPrincipalFromExpiredToken(request.Dto.AccessToken, _options);
                 if (principal == null)
                 {
                     _logger.LogWarning("RefreshTokenUseCase failed: Invalid access token");
@@ -52,7 +54,7 @@ namespace eVOL.Application.Features.UserCases.Commands.RefreshToken
 
                 _logger.LogInformation("Generating new tokens for User ID: {UserId}", user.UserId);
 
-                var newAccessToken = _jwtService.GenerateJwtToken(user, _config);
+                var newAccessToken = _jwtService.GenerateJwtToken(user, _options);
                 var newRefreshToken = _jwtService.GenerateRefreshToken();
 
                 _logger.LogInformation("Updating tokens for User ID: {UserId}", user.UserId);
