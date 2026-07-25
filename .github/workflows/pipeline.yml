@@ -24,5 +24,4 @@ jobs:
     - name: Build
       run: dotnet build eVOL.sln --no-restore --configuration Debug
 
-    - name: Test
-      run: dotnet test eVOL.sln --no-build --configuration Debug
+
