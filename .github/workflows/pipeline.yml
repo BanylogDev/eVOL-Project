@@ -1,4 +1,4 @@
-name: .NET Build and Test
+name: .NET Build
 
 on:
   push:
@@ -21,7 +21,17 @@ jobs:
     - name: Restore
       run: dotnet restore eVOL.sln
 
-    - name: Build
-      run: dotnet build eVOL.sln --no-restore --configuration Debug
+    - name: Build API
+      run: dotnet build src/eVOL.Api/eVOL.Api.csproj --no-restore --configuration Debug
 
+    - name: Build Application
+      run: dotnet build src/eVOL.Application/eVOL.Application.csproj --no-restore --configuration Debug
 
+    - name: Build Domain
+      run: dotnet build src/eVOL.Domain/eVOL.Domain.csproj --no-restore --configuration Debug
+
+    - name: Build Infrastructure
+      run: dotnet build src/eVOL.Infrastructure/eVOL.Infrastructure.csproj --no-restore --configuration Debug
+
+    - name: Build Workers
+      run: dotnet build src/eVOL.Workers/eVOL.Workers.csproj --no-restore --configuration Debug
