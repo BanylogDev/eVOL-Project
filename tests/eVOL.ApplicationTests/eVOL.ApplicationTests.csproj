@@ -5,6 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+	<IsTestProject>true</IsTestProject>
+	<ExcludeFromBuild>true</ExcludeFromBuild>
   </PropertyGroup>
 
   <ItemGroup>
@@ -36,5 +38,6 @@
     <ProjectReference Include="..\..\src\eVOL.Domain\eVOL.Domain.csproj" />
     <ProjectReference Include="..\..\src\eVOL.Infrastructure\eVOL.Infrastructure.csproj" />
   </ItemGroup>
+
 
 </Project>
