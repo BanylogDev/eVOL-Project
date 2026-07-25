@@ -6,9 +6,9 @@ namespace eVOL.Application.Features.ChatGroupCases.Commands.CreateChatGroup
     {
         public CreateChatGroupValidator()
         {
-            RuleFor(c => c.Dto.OwnerId)
+            RuleFor(c => c.Id)
                 .NotEmpty()
-                .WithMessage("OwnerId is required.");
+                .WithMessage("Owner Id is required.");
 
             RuleFor(c => c.Dto.Name)
                 .NotEmpty()
@@ -16,13 +16,9 @@ namespace eVOL.Application.Features.ChatGroupCases.Commands.CreateChatGroup
                 .MaximumLength(100)
                 .WithMessage("Name cannot exceed 100 characters.");
 
-             RuleFor(c => c.Dto.TotalUsers)
-                .GreaterThan(0)
-                .WithMessage("TotalUsers must be greater than 0.");
-
-             RuleFor(c => c.Dto.GroupUsers)
-                .NotEmpty()
-                .WithMessage("GroupUsers is required.");
+            RuleFor(c => c.Dto.TotalUsers)
+               .GreaterThan(0)
+               .WithMessage("TotalUsers must be greater than 0.");
 
 
         }

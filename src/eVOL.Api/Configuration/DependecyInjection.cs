@@ -1,15 +1,19 @@
 ﻿using Asp.Versioning.Conventions;
-using eVOL.Application.Mappings;
 using eVOL.Application.Messaging.Interfaces;
 using eVOL.Application.Options;
+using eVOL.Application.RepositoriesInteraces;
+using eVOL.Application.RepositoriesInteraces.UnitsOfWork;
 using eVOL.Application.ServicesInterfaces;
-using eVOL.Domain.RepositoriesInteraces;
-using eVOL.Infrastructure.Data;
-using eVOL.Infrastructure.Persistence;
+using eVOL.Infrastructure.Persistence.Databases;
+using eVOL.Infrastructure.Persistence.Seed;
+using eVOL.Infrastructure.Persistence.UnitsOfWork;
 using eVOL.Infrastructure.Repositories;
+using eVOL.Infrastructure.Repositories.AdminRepo;
+using eVOL.Infrastructure.Repositories.AuthRepo;
+using eVOL.Infrastructure.Repositories.MessageRepo;
+using eVOL.Infrastructure.Repositories.SupportTicketRepo;
+using eVOL.Infrastructure.Repositories.UserRepo;
 using eVOL.Infrastructure.Services;
-using Mapster;
-using MapsterMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -51,8 +55,22 @@ namespace eVOL.API.Configuration
             if (string.IsNullOrWhiteSpace(postgresConnection))
                 throw new InvalidOperationException("Connection string 'DefaultConnection' was not found.");
 
-            services.AddDbContext<ApplicationDbContext>(options =>
+            services.AddDbContextPool<ApplicationDbContext>(options =>
                 options.UseNpgsql(postgresConnection));
+
+
+
+
+            var archivedPostgresConnection = configuration.GetConnectionString("ArchivedConnection");
+            if (string.IsNullOrWhiteSpace(archivedPostgresConnection))
+                throw new InvalidOperationException("Connection string 'ArchivedConnection' was not found.");
+
+            services.AddDbContext<ArchivedDbContext>(options =>
+                options.UseNpgsql(archivedPostgresConnection));
+
+
+
+
 
             var mongoConnection = configuration.GetConnectionString("MongoDB");
             if (string.IsNullOrWhiteSpace(mongoConnection))
@@ -62,8 +80,9 @@ namespace eVOL.API.Configuration
 
             services.AddSingleton<MongoDbContext>(sp =>
             {
-                var connectionString = configuration.GetConnectionString("MongoDB");
-                return new MongoDbContext(connectionString, "eVOLChat");
+                var client = sp.GetRequiredService<IMongoClient>();
+
+                return new MongoDbContext(client, "eVOLChat");
             });
 
             services.AddScoped<IClientSessionHandle>(sp =>
@@ -84,27 +103,41 @@ namespace eVOL.API.Configuration
             return services;
         }
 
-        public static IServiceCollection AddAuthenticationAndAuthorization(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddAuthenticationAndAuthorization(
+            this IServiceCollection services, IConfiguration configuration)
         {
+            var jwtSection = configuration.GetSection("Jwt");
+            services.Configure<JwtOptions>(jwtSection);
+
+            var jwtOptions = jwtSection.Get<JwtOptions>();
+            var key = Encoding.UTF8.GetBytes(jwtOptions.Key);
+
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
+                    options.RequireHttpsMetadata = true;
+                    options.SaveToken = true;
+
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
                         ValidateAudience = true,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-                        ValidIssuer = configuration["Jwt:Issuer"],
-                        ValidAudience = configuration["Jwt:Audience"],
-                        IssuerSigningKey = new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
-                    };
-            });
 
+                        ValidIssuer = jwtOptions.Issuer,
+                        ValidAudience = jwtOptions.Audience,
+                        IssuerSigningKey = new SymmetricSecurityKey(key),
+
+                        ClockSkew = TimeSpan.Zero // strict expiration
+                    };
+                });
+
+            services.AddAuthorization();
 
             return services;
         }
+
 
         public static IServiceCollection AddCorsService(this IServiceCollection services)
         {
@@ -118,17 +151,6 @@ namespace eVOL.API.Configuration
                           .AllowCredentials();
                 });
             });
-
-            return services;
-        }
-
-        public static IServiceCollection AddMapper(this IServiceCollection services)
-        {
-            var config = new TypeAdapterConfig();
-            config.Scan(typeof(UserMappings).Assembly);
-
-            services.AddSingleton(config);
-            services.AddScoped<IMapper, ServiceMapper>();
 
             return services;
         }
@@ -235,5 +257,5 @@ namespace eVOL.API.Configuration
         }
     }
 
-    
+
 }

@@ -10,7 +10,7 @@ namespace eVOL.Application.Features.ChatGroupCases.Commands.DeleteChatGroup
                 .NotEmpty()
                 .WithMessage("ChatGroupId is required.");
 
-            RuleFor(c => c.Dto.ChatGroupOwnerId)
+            RuleFor(c => c.UserId)
                 .NotEmpty()
                 .WithMessage("ChatGroupOwnerId is required.");
         }

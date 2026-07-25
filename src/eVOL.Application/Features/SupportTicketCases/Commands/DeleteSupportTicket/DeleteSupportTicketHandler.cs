@@ -1,11 +1,11 @@
-﻿using eVOL.Domain.Entities;
-using eVOL.Domain.RepositoriesInteraces;
+﻿using eVOL.Application.DTOs.Responses.Global;
+using eVOL.Application.RepositoriesInteraces.UnitsOfWork;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace eVOL.Application.Features.SupportTicketCases.Commands.DeleteSupportTicket
 {
-    public class DeleteSupportTicketHandler : IRequestHandler<DeleteSupportTicketCommand, SupportTicket?>
+    public class DeleteSupportTicketHandler : IRequestHandler<DeleteSupportTicketCommand, ResultResponse>
     {
 
         private readonly IPostgreUnitOfWork _uow;
@@ -17,37 +17,28 @@ namespace eVOL.Application.Features.SupportTicketCases.Commands.DeleteSupportTic
             _logger = logger;
         }
 
-        public async Task<SupportTicket?> Handle(DeleteSupportTicketCommand request, CancellationToken cancellationToken)
+        public async Task<ResultResponse> Handle(DeleteSupportTicketCommand request, CancellationToken ct)
         {
             _logger.LogInformation("Starting DeleteSupportTicketUseCase for SupportTicket ID: {SupportTicketId}", request.Id);
 
-            await _uow.BeginTransactionAsync();
-
-            try
+            if (!await _uow.SupportTicket.DeleteSupportTicket(request.Id, ct))
             {
-                var supportTicket = await _uow.SupportTicket.GetSupportTicketById(request.Id);
-
-                if (supportTicket == null)
+                _logger.LogError("DeleteSupportTicketUseCase failed for SupportTicket ID: {SupportTicketId}", request.Id);
+                return new ResultResponse
                 {
-                    _logger.LogWarning("DeleteSupportTicketUseCase failed: SupportTicket not found.");
-                    return null;
-                }
-
-                _logger.LogInformation("Deleting SupportTicket ID: {SupportTicketId}", request.Id);
-
-                _uow.SupportTicket.DeleteSupportTicket(supportTicket);
-                await _uow.CommitAsync();
-
-                _logger.LogInformation("DeleteSupportTicketUseCase completed successfully for SupportTicket ID: {SupportTicketId}", request.Id);
-
-                return supportTicket;
+                    IsSuccess = false,
+                    Error = "Not Found."
+                };
             }
-            catch (Exception ex)
+
+            _logger.LogInformation("DeleteSupportTicketUseCase completed successfully for SupportTicket ID: {SupportTicketId}", request.Id);
+
+            return new ResultResponse
             {
-                await _uow.RollbackAsync();
-                _logger.LogError(ex, "DeleteSupportTicketUseCase failed and rolled back for SupportTicket ID: {SupportTicketId}", request.Id);
-                throw;
-            }
+                IsSuccess = true,
+            };
+
+
         }
     }
 }

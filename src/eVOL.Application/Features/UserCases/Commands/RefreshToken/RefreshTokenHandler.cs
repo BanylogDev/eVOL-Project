@@ -1,85 +1,124 @@
-﻿using eVOL.Application.DTOs.Requests;
+﻿using eVOL.Application.DTOs.Responses.UserResponses.ApplicationLayer;
+using eVOL.Application.DTOs.ServicesDTOs;
 using eVOL.Application.Options;
+using eVOL.Application.RepositoriesInteraces.UnitsOfWork;
 using eVOL.Application.ServicesInterfaces;
-using eVOL.Domain.RepositoriesInteraces;
 using MediatR;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace eVOL.Application.Features.UserCases.Commands.RefreshToken
 {
-    public class RefreshTokenHandler : IRequestHandler<RefreshTokenCommand, TokenDTO?>
+    public class RefreshTokenHandler : IRequestHandler<RefreshTokenCommand, TokenResponse>
     {
 
         private readonly IJwtService _jwtService;
         private readonly IPostgreUnitOfWork _uow;
-        private readonly IOptions<JwtOptions> _options;
         private readonly ILogger<RefreshTokenHandler> _logger;
 
         public RefreshTokenHandler(IJwtService jwtService, IPostgreUnitOfWork uow, IOptions<JwtOptions> options, ILogger<RefreshTokenHandler> logger)
         {
             _jwtService = jwtService;
             _uow = uow;
-            _options = options;
             _logger = logger;
         }
 
-        public async Task<TokenDTO?> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
+        public async Task<TokenResponse> Handle(RefreshTokenCommand request, CancellationToken ct)
         {
             _logger.LogInformation("Starting RefreshTokenUseCase");
 
-            await _uow.BeginTransactionAsync();
-
-            try
+            _logger.LogInformation("Validating expired access token");
+            var principal = _jwtService.GetPrincipalFromExpiredToken(request.Dto.AccessToken);
+            if (principal == null)
             {
-                _logger.LogInformation("Validating expired access token");
-                var principal = _jwtService.GetPrincipalFromExpiredToken(request.Dto.AccessToken, _options);
-                if (principal == null)
+                _logger.LogWarning("RefreshTokenUseCase failed: Invalid access token");
+                return new TokenResponse
                 {
-                    _logger.LogWarning("RefreshTokenUseCase failed: Invalid access token");
-                    return null;
-                }
-
-                _logger.LogInformation("Retrieving user information from token");
-
-                var name = principal.Identity?.Name;
-                var user = await _uow.Users.GetUserByName(name);
-
-                if (user == null || user.RefreshToken != request.Dto.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
-                {
-                    _logger.LogWarning("RefreshTokenUseCase failed: Invalid refresh token or user not found");
-                    return null;
-                }
-
-                _logger.LogInformation("Generating new tokens for User ID: {UserId}", user.UserId);
-
-                var newAccessToken = _jwtService.GenerateJwtToken(user, _options);
-                var newRefreshToken = _jwtService.GenerateRefreshToken();
-
-                _logger.LogInformation("Updating tokens for User ID: {UserId}", user.UserId);
-
-                user.RefreshToken = newRefreshToken;
-                user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(1);
-
-                _logger.LogInformation("Committing transaction for RefreshTokenUseCase");
-
-                await _uow.CommitAsync();
-
-                _logger.LogInformation("RefreshTokenUseCase completed successfully for User ID: {UserId}", user.UserId);
-
-                return new TokenDTO
-                {
-                    AccessToken = newAccessToken,
-                    RefreshToken = newRefreshToken,
+                    IsSuccess = false,
+                    Error = "Invalid access token"
                 };
             }
-            catch (Exception ex)
+
+            _logger.LogInformation("Retrieving user information from token");
+
+            var userIdClaim = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
+            if (userIdClaim == null)
             {
-                await _uow.RollbackAsync();
-                _logger.LogError(ex, "RefreshTokenUseCase failed and rolled back");
-                throw;
+                _logger.LogWarning("RefreshTokenUseCase failed: Missing user ID claim");
+                return new TokenResponse
+                {
+                    IsSuccess = false,
+                    Error = "Missing user ID claim"
+                };
             }
+
+            var userId = Guid.Parse(userIdClaim);
+
+            var user = await _uow.Users.GetUserTokenFields(userId, ct);
+
+            if (user is null)
+            {
+                _logger.LogWarning("RefreshTokenUseCase failed: User not found");
+                return new TokenResponse
+                {
+                    IsSuccess = false,
+                    Error = "User not found"
+                };
+            }
+
+            if (user.RefreshToken != request.Dto.RefreshToken)
+            {
+                _logger.LogWarning("RefreshTokenUseCase failed: Refresh token mismatch for User ID: {UserId}", user.UserId);
+                return new TokenResponse
+                {
+                    IsSuccess = false,
+                    Error = "Refresh token mismatch"
+                };
+            }
+
+            if (user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+            {
+                _logger.LogWarning("RefreshTokenUseCase failed: Refresh token expired for User ID: {UserId}", user.UserId);
+                return new TokenResponse
+                {
+                    IsSuccess = false,
+                    Error = "Refresh token expired"
+                };
+            }
+
+            _logger.LogInformation("Generating new tokens for User ID: {UserId}", user.UserId);
+
+            var newAccessToken = _jwtService.GenerateJwtToken(new JwtGeneration
+            {
+                UserId = user.UserId,
+                Email = user.Email,
+                Name = user.Name,
+                Role = user.Role,
+            });
+            var newRefreshToken = _jwtService.GenerateRefreshToken();
+
+            _logger.LogInformation("Updating tokens for User ID: {UserId}", user.UserId);
+
+            if (!await _uow.Auth.UpdateRefreshToken(user.UserId, newRefreshToken, DateTime.UtcNow.AddDays(1), user.RowVersion, ct))
+            {
+                _logger.LogError("RefreshTokenUseCase failed something went wrong!");
+                return new TokenResponse
+                {
+                    IsSuccess = false,
+                    Error = "An error occurred while processing your request. Please try again later."
+                };
+            }
+
+            _logger.LogInformation("RefreshTokenUseCase completed successfully for User ID: {UserId}", user.UserId);
+
+            return new TokenResponse
+            {
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken,
+                IsSuccess = true
+            };
         }
     }
 }

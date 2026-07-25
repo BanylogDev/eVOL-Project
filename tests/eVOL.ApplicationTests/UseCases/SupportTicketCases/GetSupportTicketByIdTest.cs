@@ -1,8 +1,7 @@
-﻿using Moq;
-using eVOL.Domain.RepositoriesInteraces;
-using Microsoft.Extensions.Logging;
+﻿using eVOL.Application.Features.SupportTicketCases.Queries.GetSupportTicketById;
 using eVOL.Domain.Entities;
-using eVOL.Application.Features.SupportTicketCases.Queries.GetSupportTicketById;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 {
@@ -37,7 +36,7 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
             Assert.NotNull(result);
             Assert.Equal(fakeSupportTicket.Id, result.Id);
 
-            supportTicketRepoMock.Verify(s =>  s.GetSupportTicketById(Guid.Parse("00000000-0000-0000-0000-000000000001")), Times.Once());
+            supportTicketRepoMock.Verify(s => s.GetSupportTicketById(Guid.Parse("00000000-0000-0000-0000-000000000001")), Times.Once());
         }
 
         [Fact]

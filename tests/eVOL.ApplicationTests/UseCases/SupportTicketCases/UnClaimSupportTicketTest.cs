@@ -1,9 +1,7 @@
-﻿using Moq;
-using eVOL.Domain.RepositoriesInteraces;
-using Microsoft.Extensions.Logging;
+﻿using eVOL.Application.Features.SupportTicketCases.Commands.UnClaimSupportTicket;
 using eVOL.Domain.Entities;
-using eVOL.Application.DTOs.Requests;
-using eVOL.Application.Features.SupportTicketCases.Commands.UnClaimSupportTicket;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 
 namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
@@ -54,7 +52,7 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
             {
                 Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                 OpenedBy = Guid.Parse("00000000-0000-0000-0000-000000000001")
-            }),CancellationToken.None);
+            }), CancellationToken.None);
 
             // Assert
 

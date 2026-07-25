@@ -1,8 +1,7 @@
-﻿using Moq;
-using eVOL.Domain.RepositoriesInteraces;
-using Microsoft.Extensions.Logging;
+﻿using eVOL.Application.Features.ChatGroupCases.Commands.RemoveUserFromChatGroup;
 using eVOL.Domain.Entities;
-using eVOL.Application.Features.ChatGroupCases.Commands.RemoveUserFromChatGroup;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 {

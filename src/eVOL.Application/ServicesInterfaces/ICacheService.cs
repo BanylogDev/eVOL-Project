@@ -1,8 +1,24 @@
-﻿namespace eVOL.Application.ServicesInterfaces
+﻿using System.Text.Json.Serialization.Metadata;
+
+namespace eVOL.Application.ServicesInterfaces
 {
+
     public interface ICacheService
     {
-        Task SetAsync(string key, string value, TimeSpan? expiry = null);
-        Task<string?> GetAsync(string key);
+        Task<T?> GetAsync<T>(
+            string key,
+            JsonTypeInfo<T> jsonTypeInfo,
+            CancellationToken cancellationToken = default);
+
+        Task SetAsync<T>(
+            string key,
+            T value,
+            JsonTypeInfo<T> jsonTypeInfo,
+            TimeSpan expiration,
+            CancellationToken cancellationToken = default);
+
+        Task RemoveAsync(
+            string key,
+            CancellationToken cancellationToken = default);
     }
 }

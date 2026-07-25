@@ -1,11 +1,11 @@
-﻿using eVOL.Domain.Entities;
-using eVOL.Domain.RepositoriesInteraces;
+﻿using eVOL.Application.DTOs.Responses.ChatGroupResponses.ApplicationLayer;
+using eVOL.Application.RepositoriesInteraces.UnitsOfWork;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace eVOL.Application.Features.ChatGroupCases.Commands.LeaveChatGroup
 {
-    public class LeaveChatGroupHandler : IRequestHandler<LeaveChatGroupCommand, User?>
+    public class LeaveChatGroupHandler : IRequestHandler<LeaveChatGroupCommand, ChatGroupResponse>
     {
 
         private readonly IPostgreUnitOfWork _uow;
@@ -17,48 +17,84 @@ namespace eVOL.Application.Features.ChatGroupCases.Commands.LeaveChatGroup
             _logger = logger;
         }
 
-        public async Task<User?> Handle(LeaveChatGroupCommand request, CancellationToken cancellationToken)
+        public async Task<ChatGroupResponse> Handle(LeaveChatGroupCommand request, CancellationToken ct)
         {
             _logger.LogInformation("Started removing user with id: {UserId} from chat group with name {ChatGroupName}", request.UserId, request.ChatGroupName);
+
+
+            var user = await _uow.Users.GetUserForChatGroup(request.UserId, ct);
+
+            var chatGroup = await _uow.ChatGroup.GetChatGroupUsersByName(request.ChatGroupName, ct);
+
+            if (chatGroup == null)
+            {
+                _logger.LogWarning("Chat group with name: {ChatGroupName} not found", request.ChatGroupName);
+                return new ChatGroupResponse
+                {
+                    IsSuccess = false,
+                    Error = "Chat Group not found."
+                };
+            }
+
+            if (user == null)
+            {
+                _logger.LogWarning("User with id: {UserId} wasn't found", request.UserId);
+                return new ChatGroupResponse
+                {
+                    IsSuccess = false,
+                    Error = "User not found."
+                };
+            }
+
+            if (!chatGroup.Users.Contains(user))
+            {
+                _logger.LogWarning("User with id: {UserId} isn't in the group!", request.UserId);
+                return new ChatGroupResponse
+                {
+                    IsSuccess = false,
+                    Error = "User isnt in the group."
+                };
+            }
+
+            if (chatGroup.TotalUsers - 1 == 0)
+            {
+                await _uow.ChatGroup.DeleteChatGroupByName(request.ChatGroupName, request.UserId, ct);
+                _logger.LogInformation("Chat Group with name: {ChatGroupName} has been deleted because all users in it left!", request.ChatGroupName);
+                return new ChatGroupResponse
+                {
+                    Name = user.Name,
+                    IsSuccess = true,
+                };
+            }
+
+            _logger.LogInformation("Removing user with id: {UserId} from chat group with name {ChatGroupName}, Previous Total Users: {TotalUsers}", request.UserId, request.ChatGroupName, chatGroup.TotalUsers);
 
             await _uow.BeginTransactionAsync();
 
             try
             {
-                var user = await _uow.Users.GetUserById(request.UserId);
-
-                var chatGroup = await _uow.ChatGroup.GetChatGroupByName(request.ChatGroupName);
-
-                if (chatGroup == null || user == null || !chatGroup.GroupUsers.Contains(user))
-                {
-                    _logger.LogWarning("Chat group with name: {ChatGroupName} or user with id: {UserId} wasn't found, or user isn't in the group!", request.ChatGroupName, request.UserId);
-                    return null;
-                }
-
-                _logger.LogInformation("Removing user with id: {UserId} from chat group with name {ChatGroupName}, Previous Total Users: {TotalUsers}", request.UserId, request.ChatGroupName, chatGroup.TotalUsers);
-
-                chatGroup.GroupUsers.Remove(user);
+                chatGroup.Users.Remove(user);
                 chatGroup.TotalUsers -= 1;
-
-                _logger.LogInformation("Finished removing user with id: {UserId} from chat group with name {ChatGroupName}, New Total Users: {TotalUsers}", request.UserId, request.ChatGroupName, chatGroup.TotalUsers);
-
-                if (chatGroup.TotalUsers == 0)
-                {
-                    _uow.ChatGroup.DeleteChatGroup(chatGroup);
-                    _logger.LogInformation("Chat Group with name: {ChatGroupName} has been deleted because all users in it left!", request.ChatGroupName);
-                }
 
                 await _uow.CommitAsync();
 
                 _logger.LogInformation("Ended removing user with id: {UserId} from chat group with name {ChatGroupName}, Success!", request.UserId, request.ChatGroupName);
 
-                return user;
+                return new ChatGroupResponse
+                {
+                    Name = user.Name,
+                    IsSuccess = true
+                };
             }
             catch (Exception ex)
             {
                 await _uow.RollbackAsync();
                 _logger.LogInformation(ex, "Error, Something went wrong during the subtraction of user with id: {UserId} from chat group with name: {ChatGroupName}", request.UserId, request.ChatGroupName);
-                throw;
+                return new ChatGroupResponse
+                {
+                    IsSuccess = false,
+                    Error = "Something went wrong."
+                };
             }
         }
     }

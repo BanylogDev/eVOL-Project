@@ -1,9 +1,6 @@
 ﻿using eVOL.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace eVOL.Infrastructure.Persistence.Configurations
 {
@@ -18,7 +15,7 @@ namespace eVOL.Infrastructure.Persistence.Configurations
             builder.HasKey(u => u.UserId);
             builder.Property(u => u.UserId)
                    .ValueGeneratedOnAdd();
-             
+
             builder.Property(u => u.Name)
                    .IsRequired()
                    .HasMaxLength(100);
@@ -40,9 +37,6 @@ namespace eVOL.Infrastructure.Persistence.Configurations
 
             builder.Property(u => u.CreatedAt)
                    .IsRequired();
-
-            builder.Property(u => u.AccessToken)
-                   .HasMaxLength(2048);
 
             builder.Property(u => u.RefreshToken)
                    .HasMaxLength(256);

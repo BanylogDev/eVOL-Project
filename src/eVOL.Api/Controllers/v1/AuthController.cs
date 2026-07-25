@@ -1,6 +1,5 @@
 ﻿using Asp.Versioning;
-using eVOL.Application.DTOs;
-using eVOL.Application.DTOs.Requests;
+using eVOL.Application.DTOs.Requests.UserDTO;
 using eVOL.Application.Features.UserCases.Commands.LoginUser;
 using eVOL.Application.Features.UserCases.Commands.RefreshToken;
 using eVOL.Application.Features.UserCases.Commands.RegisterUser;
@@ -22,41 +21,33 @@ namespace eVOL.API.Controllers.v1
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterDTO dto)
+        public async Task<IActionResult> Register([FromBody] Register dto, CancellationToken ct)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var result = await _sender.Send(new RegisterUserCommand(dto), ct);
 
-            var user = await _sender.Send(new RegisterUserCommand(dto));
+            if (!result.IsSuccess) return BadRequest(result);
 
-            if (user == null) return BadRequest("Something went wrong");
-
-            return Ok(new { message = "Registration successful", user.Name, user.Email });
+            return Ok(result);
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDTO dto)
+        public async Task<IActionResult> Login([FromBody] Login dto, CancellationToken ct)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var result = await _sender.Send(new LoginUserCommand(dto), ct);
 
-            var user = await _sender.Send(new LoginUserCommand(dto));
+            if (!result.IsSuccess) return BadRequest(result);
 
-            if (user == null) return Unauthorized("Invalid username or password");
-
-            return Ok(new { message = "Login successful", user.UserId, user.Name, user.Email, user.AccessToken, user.RefreshToken });
+            return Ok(result);
         }
 
         [HttpPost("refresh")]
-        public async Task<IActionResult> Refresh([FromBody] TokenDTO tokenDto)
+        public async Task<IActionResult> Refresh([FromBody] Token tokenDto, CancellationToken ct)
         {
-            if (tokenDto is null) return BadRequest("Invalid client request");
+            var result = await _sender.Send(new RefreshTokenCommand(tokenDto), ct);
 
-            var tokens = await _sender.Send(new RefreshTokenCommand(tokenDto));
+            if (!result.IsSuccess) return NotFound(result);
 
-            return Ok(new
-            {
-                token = tokens?.AccessToken,
-                refreshToken = tokens?.RefreshToken
-            });
+            return Ok(result);
         }
 
 

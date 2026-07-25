@@ -1,12 +1,12 @@
-﻿using eVOL.Application.Features.AdminCases.Commands.AdminDeleteUser;
-using eVOL.Domain.Entities;
-using eVOL.Domain.RepositoriesInteraces;
+﻿using eVOL.Application.DTOs.Responses.Global;
+using eVOL.Application.Features.AdminCases.Commands.AdminDeleteUser;
+using eVOL.Application.RepositoriesInteraces.UnitsOfWork;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace eVOL.Application.FeaturesCases.Admin.Commands.AdminDeleteUser
 {
-    public class AdminDeleteUserHandler : IRequestHandler<AdminDeleteUserCommand, User?>
+    public class AdminDeleteUserHandler : IRequestHandler<AdminDeleteUserCommand, ResultResponse>
     {
 
         private readonly IPostgreUnitOfWork _uow;
@@ -18,39 +18,27 @@ namespace eVOL.Application.FeaturesCases.Admin.Commands.AdminDeleteUser
             _logger = logger;
         }
 
-        public async Task<User?> Handle(AdminDeleteUserCommand request, CancellationToken cancellationToken)
+        public async Task<ResultResponse> Handle(AdminDeleteUserCommand request, CancellationToken ct)
         {
             _logger.LogInformation("Admin -> Started Deletion of user {UserId}", request.Id);
 
-            await _uow.BeginTransactionAsync();
-
-            try
+            if (!await _uow.Admin.DeleteUser(request.Id, ct))
             {
-                var user = await _uow.Users.GetUserById(request.Id);
-
-                if (user == null)
+                _logger.LogWarning("Admin -> Failed to delete user {UserId}", request.Id);
+                return new ResultResponse
                 {
-
-                    _logger.LogWarning("Admin -> Error, user doesn't exist with id: {UserId}", request.Id);
-
-                    return null;
-                }
-
-                _logger.LogInformation("Admin -> Deleting user with id: {UserId}", request.Id);
-
-                _uow.Users.RemoveUser(user);
-                await _uow.CommitAsync();
-
-                _logger.LogInformation("Admin -> Success, Ended Deletion of user {UserId}", request.Id);
-
-                return user;
+                    IsSuccess = false,
+                    Error = $"Admin -> User not found with id {request.Id}"
+                };
             }
-            catch (Exception ex)
+
+            _logger.LogInformation("Admin -> Success, Ended Deletion of user {UserId}", request.Id);
+
+            return new ResultResponse
             {
-                await _uow.RollbackAsync();
-                _logger.LogError(ex, "Admin -> Error, Something went wrong during deletion of user with id: {UserId}", request.Id);
-                throw;
-            }
+                IsSuccess = true,
+            };
+
         }
     }
 }

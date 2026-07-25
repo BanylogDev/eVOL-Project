@@ -1,10 +1,8 @@
-﻿using Moq;
-using eVOL.Domain.RepositoriesInteraces;
+﻿using eVOL.Application.Features.UserCases.Commands.DeleteUser;
 using eVOL.Application.ServicesInterfaces;
-using Microsoft.Extensions.Logging;
 using eVOL.Domain.Entities;
-using eVOL.Application.DTOs.Requests;
-using eVOL.Application.Features.UserCases.Commands.DeleteUser;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 
 namespace eVOL.ApplicationTests.UseCases.UserCases
@@ -104,7 +102,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
             uowMock.Verify(u => u.CommitAsync(), Times.Never);
             uowMock.Verify(u => u.RollbackAsync(), Times.Never);
 
-            userRepoMock.Verify(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000001")   ), Times.Once);
+            userRepoMock.Verify(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000001")), Times.Once);
         }
 
         [Fact]

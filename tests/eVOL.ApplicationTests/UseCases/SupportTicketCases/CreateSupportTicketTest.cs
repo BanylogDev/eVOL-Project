@@ -1,9 +1,7 @@
-﻿using Moq;
-using eVOL.Domain.RepositoriesInteraces;
-using Microsoft.Extensions.Logging;
+﻿using eVOL.Application.Features.SupportTicketCases.Commands.CreateSupportTicket;
 using eVOL.Domain.Entities;
-using eVOL.Application.DTOs.Requests;
-using eVOL.Application.Features.SupportTicketCases.Commands.CreateSupportTicket;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 
 namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
@@ -49,7 +47,7 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
             // Assert
 
             Assert.NotNull(result);
-            
+
             uowMock.Verify(u => u.BeginTransactionAsync(), Times.Once);
             uowMock.Verify(u => u.CommitAsync(), Times.Once);
             uowMock.Verify(u => u.RollbackAsync(), Times.Never);

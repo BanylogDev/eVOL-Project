@@ -1,23 +1,21 @@
-﻿using eVOL.Application.DTOs.Responses.User;
+﻿using eVOL.Application.DTOs.Responses.UserResponses.ApplicationLayer;
+using eVOL.Application.DTOs.ServicesDTOs;
 using eVOL.Application.Options;
+using eVOL.Application.RepositoriesInteraces.UnitsOfWork;
 using eVOL.Application.ServicesInterfaces;
-using eVOL.Domain.RepositoriesInteraces;
-using Mapster;
 using MediatR;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace eVOL.Application.Features.UserCases.Commands.LoginUser
 {
 
-    public class LoginUserHandler : IRequestHandler<LoginUserCommand, LoginUserResponse?>
+    public class LoginUserHandler : IRequestHandler<LoginUserCommand, LoginUserResponse>
     {
 
         private readonly IPostgreUnitOfWork _uow;
         private readonly IPasswordHasher _passwordHasher;
         private readonly IJwtService _jwtService;
-        private readonly IOptions<JwtOptions> _options;
         private readonly ILogger<LoginUserHandler> _logger;
 
 
@@ -30,51 +28,69 @@ namespace eVOL.Application.Features.UserCases.Commands.LoginUser
             _uow = uow;
             _passwordHasher = passwordHasher;
             _jwtService = jwtService;
-            _options = options;
             _logger = logger;
         }
 
-        public async Task<LoginUserResponse?> Handle(LoginUserCommand request, CancellationToken cancellationToken)
+        public async Task<LoginUserResponse> Handle(LoginUserCommand request, CancellationToken ct)
         {
             _logger.LogInformation("Starting LoginUserUseCase for Email: {Email}", request.Dto.Email);
 
-            await _uow.BeginTransactionAsync();
 
-            try
+            var user = await _uow.Users.GetUserLoginFields(request.Dto.Email, ct);
+
+            if (user == null)
             {
-                var user = await _uow.Users.GetUserByEmail(request.Dto.Email);
-
-                if (user == null || !_passwordHasher.VerifyPassword(request.Dto.Password, user.Password))
+                _logger.LogWarning("LoginUserUseCase failed: User not found for Email: {Email}", request.Dto.Email);
+                return new LoginUserResponse
                 {
-                    _logger.LogWarning("LoginUserUseCase failed: User not found or invalid password for Email: {Email}", request.Dto.Email);
-                    return null;
-                }
-
-                _logger.LogInformation("Generating tokens for User ID: {UserId}", user.UserId);
-
-                var token = _jwtService.GenerateJwtToken(user, _options);
-                var refreshToken = _jwtService.GenerateRefreshToken();
-
-                _logger.LogInformation("Updating tokens for User ID: {UserId}", user.UserId);
-
-                user.RefreshToken = refreshToken;
-                user.AccessToken = token;
-                user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(1);
-
-                await _uow.CommitAsync();
-
-                _logger.LogInformation("LoginUserUseCase completed successfully for User ID: {UserId}", user.UserId);
-
-                _logger.LogInformation($"handled by {Environment.MachineName}");
-
-                return user.Adapt<LoginUserResponse>();
+                    IsSuccess = false,
+                    Error = "Invalid Email or Password!"
+                };
             }
-            catch (Exception ex)
+
+            if (!_passwordHasher.VerifyPassword(request.Dto.Password, user.Password))
             {
-                await _uow.RollbackAsync();
-                _logger.LogError(ex, "LoginUserUseCase failed and rolled back for Email: {Email}", request.Dto.Email);
-                throw;
+                _logger.LogWarning("LoginUserUseCase failed: Invalid password for Email: {Email}", request.Dto.Email);
+                return new LoginUserResponse
+                {
+                    IsSuccess = false,
+                    Error = "Invalid Email or Password!"
+                };
             }
+
+            _logger.LogInformation("Generating tokens for User ID: {UserId}", user.UserId);
+
+            var accessToken = _jwtService.GenerateJwtToken(new JwtGeneration
+            {
+                UserId = user.UserId,
+                Name = user.Name,
+                Email = user.Email,
+                Role = user.Role
+            });
+            var refreshToken = _jwtService.GenerateRefreshToken();
+
+            _logger.LogInformation("Updating tokens for User ID: {UserId}", user.UserId);
+
+            if (!await _uow.Auth.UpdateRefreshToken(user.UserId, refreshToken, DateTime.UtcNow.AddDays(1), user.RowVersion, ct))
+            {
+                _logger.LogError("LoginUserUseCase failed something went rwong!");
+                return new LoginUserResponse
+                {
+                    IsSuccess = false,
+                    Error = "An error occurred while processing your request. Please try again later."
+                };
+            }
+
+            _logger.LogInformation("LoginUserUseCase completed successfully for User ID: {UserId}", user.UserId);
+
+
+            return new LoginUserResponse
+            {
+                AccessToken = accessToken,
+                RefreshToken = refreshToken,
+                IsSuccess = true
+            };
+
         }
     }
 }

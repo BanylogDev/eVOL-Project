@@ -2,10 +2,10 @@
 {
     public class Money
     {
-        public double Balance { get; private set; } 
-        public string Currency { get; private set;}
-        
-        public Money(double balance, string currency)
+        public double? Balance { get; private set; }
+        public string? Currency { get; private set; }
+
+        public Money(double? balance, string? currency)
         {
 
             if (balance < 0)

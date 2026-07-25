@@ -1,35 +1,63 @@
 ﻿using eVOL.Application.ServicesInterfaces;
 using StackExchange.Redis;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 
-namespace eVOL.Infrastructure.Services
+namespace eVOL.Infrastructure.Services;
+
+public sealed class CacheService : ICacheService
 {
-    public class CacheService : ICacheService
+    private readonly IDatabase _database;
+
+    public CacheService(IConnectionMultiplexer multiplexer)
     {
-        private readonly IDatabase _db;
+        _database = multiplexer.GetDatabase();
+    }
 
-        public CacheService(IConnectionMultiplexer redis)
-        {
-            _db = redis.GetDatabase();
-        }
+    public async Task<T?> GetAsync<T>(
+        string key,
+        JsonTypeInfo<T> jsonTypeInfo,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
 
-        public async Task SetAsync(string key, string value, TimeSpan? expiry = null)
-        {
-            Expiration redisExpiry = expiry.HasValue
-                ? (Expiration)expiry.Value
-                : Expiration.Persist;
+        RedisValue value = await _database.StringGetAsync(key);
 
-            await _db.StringSetAsync(key, value, redisExpiry);
-        }
+        if (value.IsNullOrEmpty)
+            return default;
 
-        public async Task<string?> GetAsync(string key)
-        {
-            var value = await _db.StringGetAsync(key);
-            return value.HasValue ? value.ToString() : null;
-        }
+        byte[] bytes = value!;
+
+        return JsonSerializer.Deserialize(
+            bytes,
+            jsonTypeInfo);
+    }
+
+    public async Task SetAsync<T>(
+        string key,
+        T value,
+        JsonTypeInfo<T> jsonTypeInfo,
+        TimeSpan expiration,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(
+            value,
+            jsonTypeInfo);
+
+        await _database.StringSetAsync(
+            key,
+            bytes,
+            expiration);
+    }
+
+    public async Task RemoveAsync(
+        string key,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        await _database.KeyDeleteAsync(key);
     }
 }

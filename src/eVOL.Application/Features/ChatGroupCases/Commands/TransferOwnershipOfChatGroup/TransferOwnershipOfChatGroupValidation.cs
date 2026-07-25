@@ -10,13 +10,13 @@ namespace eVOL.Application.Features.ChatGroupCases.Commands.TransferOwnershipOfC
                 .NotEmpty()
                 .WithMessage("ChatGroupId is required.");
 
-            RuleFor(u => u.Dto.CurrentOwnerId)
+            RuleFor(u => u.CurrentOwnerId)
                 .NotEmpty()
                 .WithMessage("CurrentOwnerId is required.");
 
             RuleFor(u => u.Dto.NewOwnerId)
                 .NotEmpty()
-                .WithMessage("NewOwnerId is required.");    
+                .WithMessage("NewOwnerId is required.");
         }
     }
 }

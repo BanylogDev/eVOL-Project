@@ -9,10 +9,12 @@ namespace eVOL.Application.Features.SupportTicketCases.Commands.CreateSupportTic
             RuleFor(s => s.Dto.Category)
                 .NotEmpty()
                 .WithMessage("Category is required.");
+
             RuleFor(s => s.Dto.Text)
                 .NotEmpty()
                 .WithMessage("Text is required.");
-            RuleFor(s => s.Dto.OpenedBy)
+
+            RuleFor(s => s.UserId)
                 .NotEmpty()
                 .WithMessage("User ID is required to create a support ticket.");
         }

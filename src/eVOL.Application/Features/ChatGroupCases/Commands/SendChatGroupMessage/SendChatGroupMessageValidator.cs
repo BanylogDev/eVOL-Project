@@ -17,7 +17,7 @@ namespace eVOL.Application.Features.ChatGroupCases.Commands.SendChatGroupMessage
                 .WithMessage("ChatGroupName is required.")
                 .MaximumLength(100)
                 .WithMessage("ChatGroupName cannot exceed 100 characters.");
-            
+
             RuleFor(u => u.UserId)
                 .NotEmpty()
                 .WithMessage("UserId is required.");

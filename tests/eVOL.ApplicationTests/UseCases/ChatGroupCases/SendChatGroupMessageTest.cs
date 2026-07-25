@@ -1,7 +1,6 @@
 ﻿using eVOL.Application.Features.ChatGroupCases.Commands.SendChatGroupMessage;
 using eVOL.Application.Messaging.Interfaces;
 using eVOL.Domain.Entities;
-using eVOL.Domain.RepositoriesInteraces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Moq;

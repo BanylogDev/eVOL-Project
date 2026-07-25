@@ -1,6 +1,5 @@
 ﻿using eVOL.Application.Features.SupportTicketCases.Commands.SendSupportTicketMessage;
 using eVOL.Domain.Entities;
-using eVOL.Domain.RepositoriesInteraces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -33,7 +32,7 @@ namespace eVOL.ApplicationTests.UseCases.SupportTicketCases
 
             var fakeUser = new User
             {
-                UserId = Guid.Parse("00000000-0000-0000-0000-000000000001"), 
+                UserId = Guid.Parse("00000000-0000-0000-0000-000000000001"),
             };
 
             var fakeSupportTicket = new SupportTicket

@@ -1,15 +1,12 @@
-﻿using eVOL.Application.Options;
-using eVOL.Domain.Entities;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
+﻿using eVOL.Application.DTOs.ServicesDTOs;
 using System.Security.Claims;
 
 namespace eVOL.Application.ServicesInterfaces
 {
     public interface IJwtService
     {
-        string GenerateJwtToken(User user, IOptions<JwtOptions> options);
+        string GenerateJwtToken(JwtGeneration user);
         string GenerateRefreshToken();
-        ClaimsPrincipal? GetPrincipalFromExpiredToken(string token, IOptions<JwtOptions> options);
+        ClaimsPrincipal? GetPrincipalFromExpiredToken(string token);
     }
 }

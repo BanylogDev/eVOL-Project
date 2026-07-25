@@ -1,8 +1,7 @@
-﻿using Moq;
-using eVOL.Domain.RepositoriesInteraces;
-using Microsoft.Extensions.Logging;
+﻿using eVOL.Application.Features.ChatGroupCases.Commands.AddUserToChatGroup;
 using eVOL.Domain.Entities;
-using eVOL.Application.Features.ChatGroupCases.Commands.AddUserToChatGroup;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 
 
@@ -53,7 +52,7 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
             Assert.NotNull(result);
             Assert.Equal(fakeUser.UserId, result.UserId);
-            
+
             uowMock.Verify(u => u.BeginTransactionAsync(), Times.Once);
             uowMock.Verify(u => u.CommitAsync(), Times.Once);
             uowMock.Verify(u => u.RollbackAsync(), Times.Never);

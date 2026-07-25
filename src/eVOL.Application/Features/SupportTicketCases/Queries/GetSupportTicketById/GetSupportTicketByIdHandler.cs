@@ -1,11 +1,11 @@
-﻿using eVOL.Domain.Entities;
-using eVOL.Domain.RepositoriesInteraces;
+﻿using eVOL.Application.DTOs.Responses.SupportTicketResponses.ApplicationLayer;
+using eVOL.Application.RepositoriesInteraces.UnitsOfWork;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace eVOL.Application.Features.SupportTicketCases.Queries.GetSupportTicketById
 {
-    public class GetSupportTicketByIdHandler : IRequestHandler<GetSupportTicketByIdQuery, SupportTicket?>
+    public class GetSupportTicketByIdHandler : IRequestHandler<GetSupportTicketByIdQuery, GetSupportTicket>
     {
 
         private readonly IPostgreUnitOfWork _uow;
@@ -17,19 +17,32 @@ namespace eVOL.Application.Features.SupportTicketCases.Queries.GetSupportTicketB
             _logger = logger;
         }
 
-        public async Task<SupportTicket?> Handle(GetSupportTicketByIdQuery request, CancellationToken cancellationToken)
+        public async Task<GetSupportTicket> Handle(GetSupportTicketByIdQuery request, CancellationToken ct)
         {
-            var supportTicket = await _uow.SupportTicket.GetSupportTicketById(request.Id);
+            var supportTicket = await _uow.SupportTicket.GetSupportTicketById(request.Id, ct);
 
             if (supportTicket == null)
             {
                 _logger.LogWarning("GetSupportTicketByIdUseCase: SupportTicket with ID {SupportTicketId} not found.", request.Id);
-                return null;
+                return new GetSupportTicket
+                {
+                    IsSuccess = false,
+                    Error = "Not Found."
+                };
             }
 
             _logger.LogInformation("GetSupportTicketByIdUseCase: Successfully retrieved SupportTicket with ID {SupportTicketId}.", request.Id);
 
-            return supportTicket;
+            return new GetSupportTicket
+            {
+                Name = supportTicket.Name,
+                Category = supportTicket.Category,
+                OpenedById = supportTicket.OpenedById,
+                ClaimedById = supportTicket.ClaimedById,
+                ClaimedStatus = supportTicket.ClaimedStatus,
+                CreatedAt = supportTicket.CreatedAt,
+                IsSuccess = true
+            };
         }
     }
 }

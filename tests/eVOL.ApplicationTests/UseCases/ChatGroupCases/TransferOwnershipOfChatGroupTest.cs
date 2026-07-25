@@ -1,9 +1,7 @@
-﻿using Moq;
-using eVOL.Domain.RepositoriesInteraces;
-using Microsoft.Extensions.Logging;
+﻿using eVOL.Application.Features.ChatGroupCases.Commands.TransferOwnershipOfChatGroup;
 using eVOL.Domain.Entities;
-using eVOL.Application.Features.ChatGroupCases.Commands.TransferOwnershipOfChatGroup;
-using eVOL.Application.DTOs.Requests;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 
 namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
@@ -61,7 +59,7 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
             // Act
 
             var result = await sut.Handle(new TransferOwnershipOfChatGroupCommand(
-                new TransferOwnershipOfCGDTO { CurrentOwnerId=fakeCurrentOwner.UserId, NewOwnerId=fakeNewOwner.UserId, ChatGroupId=fakeChatGroup.Id }), CancellationToken.None);
+                new TransferOwnershipOfCGDTO { CurrentOwnerId = fakeCurrentOwner.UserId, NewOwnerId = fakeNewOwner.UserId, ChatGroupId = fakeChatGroup.Id }), CancellationToken.None);
 
             // Assert
 

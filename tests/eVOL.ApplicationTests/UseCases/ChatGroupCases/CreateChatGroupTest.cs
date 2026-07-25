@@ -1,9 +1,7 @@
-﻿using Moq;
-using eVOL.Domain.RepositoriesInteraces;
-using Microsoft.Extensions.Logging;
+﻿using eVOL.Application.Features.ChatGroupCases.Commands.CreateChatGroup;
 using eVOL.Domain.Entities;
-using eVOL.Application.DTOs.Requests;
-using eVOL.Application.Features.ChatGroupCases.Commands.CreateChatGroup;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 
 namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
@@ -15,7 +13,7 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
         public async Task CreateChatGroup_CreateNewChatGroup_ReturnsChatGroup()
         {
             // Arrange
-            
+
             var uowMock = new Mock<IPostgreUnitOfWork>();
             var chatGroupRepoMock = new Mock<IChatGroupRepository>();
             var loggerMock = new Mock<ILogger<CreateChatGroupHandler>>();
@@ -38,7 +36,7 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
             // Act
 
-            var result = await sut.Handle(new CreateChatGroupCommand( new ChatGroupDTO
+            var result = await sut.Handle(new CreateChatGroupCommand(new ChatGroupDTO
             {
                 Name = "ChatGroup",
                 OwnerId = Guid.Parse("00000000-0000-0000-0000-000000000002"),

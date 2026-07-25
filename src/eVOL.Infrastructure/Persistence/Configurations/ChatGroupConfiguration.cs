@@ -1,9 +1,6 @@
 ﻿using eVOL.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace eVOL.Infrastructure.Persistence.Configurations
 {
@@ -30,10 +27,6 @@ namespace eVOL.Infrastructure.Persistence.Configurations
             builder.Property(g => g.CreatedAt)
                    .IsRequired();
 
-            // Relationship: ChatGroup has many Users and Users have many Chat Groups
-            builder.HasMany(g => g.GroupUsers)
-                   .WithMany(u => u.ChatGroups)
-                   .UsingEntity(j => j.ToTable("ChatGroupUsers"));
         }
 
     }

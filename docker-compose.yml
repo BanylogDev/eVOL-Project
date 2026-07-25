@@ -112,6 +112,26 @@ services:
       timeout: 5s
       retries: 10
 
+  evol.archived:
+    container_name: evol.archived
+    image: postgres:16
+    environment:
+      POSTGRES_USER: evol_user
+      POSTGRES_PASSWORD: evol_password
+      POSTGRES_DB: evol_archived_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - evol-archived-data:/var/lib/postgresql/data
+    networks:
+      - evol-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U evol_user -d evol_archived_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   evol.mongodb:
     container_name: evol.mongodb
     image: mongo:6
@@ -164,6 +184,7 @@ services:
 
 volumes:
   evol-postgres-data:
+  evol-archived-data:
   evol-mongodb-data:
   evol-redis-data:
   evol-seq-data:

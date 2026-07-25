@@ -11,12 +11,9 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.WithThreadId()
     .Enrich.WithCorrelationId()
     .WriteTo.Console()
-    //.WriteTo.Seq("http://evol.seq:80")
     .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.AddServiceDefaults();
 
 builder.Host.UseSerilog();
 
@@ -26,7 +23,6 @@ builder.Services
     .AddPresentation()
     .AddAuthenticationAndAuthorization(builder.Configuration)
     .AddCorsService()
-    .AddMapper()
     .AddMediatorService()
     .AddScopedUseCases()
     .AddApiVersioningService()
@@ -35,12 +31,10 @@ builder.Services
 
 var app = builder.Build();
 
-app.MapDefaultEndpoints();
-
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseRouting();
+app.UseHttpsRedirection();
 
 app.UseRateLimiter();
 

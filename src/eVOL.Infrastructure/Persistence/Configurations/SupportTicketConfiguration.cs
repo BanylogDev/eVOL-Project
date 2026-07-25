@@ -19,9 +19,8 @@ public sealed class SupportTicketConfiguration : IEntityTypeConfiguration<Suppor
                .IsRequired()
                .HasMaxLength(100);
 
-        builder.Property(t => t.Text)
-               .IsRequired()
-               .HasMaxLength(2000);
+        builder.Property(t => t.Messages)
+               .IsRequired();
 
         builder.Property(t => t.ClaimedStatus)
                .IsRequired();

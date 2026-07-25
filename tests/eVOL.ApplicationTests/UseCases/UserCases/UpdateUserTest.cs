@@ -1,10 +1,8 @@
-﻿using Moq;
-using eVOL.Domain.RepositoriesInteraces;
+﻿using eVOL.Application.Features.UserCases.Commands.UpdateUser;
 using eVOL.Application.ServicesInterfaces;
-using Microsoft.Extensions.Logging;
 using eVOL.Domain.Entities;
-using eVOL.Application.DTOs.Requests;
-using eVOL.Application.Features.UserCases.Commands.UpdateUser;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 
 namespace eVOL.ApplicationTests.UseCases.UserCases
@@ -19,7 +17,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
             var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var passwordHasherMock = new Mock<IPasswordHasher>();
-            var loggerMock = new Mock<ILogger<UpdateUserHandler>>();
+            var loggerMock = new Mock<ILogger<UpdateUserNameHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
             uowMock.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
@@ -46,14 +44,14 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             // Act
 
-            var result = await sut.Handle(new UpdateUserCommand(new UpdateDTO
+            var result = await sut.Handle(new UpdateUserCommand(new UpdateNameDTO
             {
                 Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                 Name = "NewName",
                 Email = "NewEmail",
                 Password = "OldPassword",
                 ConfirmPassword = "OldPassword",
-            }),CancellationToken.None);
+            }), CancellationToken.None);
 
             // Assert
 
@@ -78,7 +76,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
             var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var passwordHasherMock = new Mock<IPasswordHasher>();
-            var loggerMock = new Mock<ILogger<UpdateUserHandler>>();
+            var loggerMock = new Mock<ILogger<UpdateUserNameHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
             uowMock.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
@@ -93,7 +91,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             // Act
 
-            var result = await sut.Handle(new UpdateUserCommand(new UpdateDTO
+            var result = await sut.Handle(new UpdateUserCommand(new UpdateNameDTO
             {
                 Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                 Name = "NewName",
@@ -105,7 +103,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
             // Assert
 
             Assert.Null(result);
-            
+
             uowMock.Verify(u => u.BeginTransactionAsync(), Times.Once);
 
             userRepoMock.Verify(u => u.GetUserById(Guid.Parse("00000000-0000-0000-0000-000000000001")), Times.Once);
@@ -120,7 +118,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
             var uowMock = new Mock<IPostgreUnitOfWork>();
             var userRepoMock = new Mock<IUserRepository>();
             var passwordHasherMock = new Mock<IPasswordHasher>();
-            var loggerMock = new Mock<ILogger<UpdateUserHandler>>();
+            var loggerMock = new Mock<ILogger<UpdateUserNameHandler>>();
 
             uowMock.Setup(u => u.Users).Returns(userRepoMock.Object);
             uowMock.Setup(u => u.BeginTransactionAsync()).Returns(Task.CompletedTask);
@@ -138,7 +136,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
             await Assert.ThrowsAsync<Exception>(async () =>
             {
-                await sut.Handle(new UpdateUserCommand(new UpdateDTO
+                await sut.Handle(new UpdateUserCommand(new UpdateNameDTO
                 {
                     Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                     Name = "NewName",

@@ -1,11 +1,12 @@
-﻿using eVOL.Domain.Entities;
-using eVOL.Domain.RepositoriesInteraces;
+﻿using eVOL.Application.DTOs.Responses.Global;
+using eVOL.Application.RepositoriesInteraces.UnitsOfWork;
+using eVOL.Domain.Entities;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace eVOL.Application.Features.ChatGroupCases.Commands.SendChatGroupMessage
 {
-    public class SendChatGroupMessageHandler : IRequestHandler<SendChatGroupMessageCommand, (ChatMessage?, User?)>
+    public class SendChatGroupMessageHandler : IRequestHandler<SendChatGroupMessageCommand, ResultResponse>
     {
 
         private readonly IPublisher _publisher;
@@ -19,40 +20,48 @@ namespace eVOL.Application.Features.ChatGroupCases.Commands.SendChatGroupMessage
             _logger = logger;
         }
 
-        public async Task<(ChatMessage?, User?)> Handle(SendChatGroupMessageCommand request, CancellationToken cancellationToken)
+        public async Task<ResultResponse> Handle(SendChatGroupMessageCommand request, CancellationToken ct)
         {
             _logger.LogInformation("Started sending message from user with id: {UserId} to chat group with name: {ChatGroupName}, Text: {Text}", request.UserId, request.ChatGroupName, request.Message);
 
-            await _mysqluow.BeginTransactionAsync();
-
-            try
+            if (!await _mysqluow.Users.CheckUserExistance(request.UserId, ct))
             {
-                var chatGroup = await _mysqluow.ChatGroup.GetChatGroupByName(request.ChatGroupName);
-                var user = await _mysqluow.Users.GetUserById(request.UserId);
-
-                if (chatGroup == null || user == null) return (null, null);
-
-                var evt = new ChatMessage
+                _logger.LogWarning("User with id: {UserId} not found", request.UserId);
+                return new ResultResponse
                 {
-                    MessageId = Guid.NewGuid(),
-                    Text = request.Message,
-                    SenderId = user.UserId,
-                    ReceiverId = chatGroup.Id,
-                    CreatedAt = DateTime.UtcNow
+                    IsSuccess = false,
+                    Error = "User not found."
                 };
-
-                await _mysqluow.CommitAsync();
-
-                await _publisher.Publish(new SendChatGroupMessageEvent(evt));
-
-                return (new ChatMessage { Text = evt.Text, SenderId = evt.SenderId, ReceiverId = evt.ReceiverId, CreatedAt = evt.CreatedAt }, user);
             }
-            catch (Exception ex)
+
+            var chatGroup = await _mysqluow.ChatGroup.GetChatGroupIdByName(request.ChatGroupName, ct);
+
+            if (chatGroup == null)
             {
-                await _mysqluow.RollbackAsync();
-                _logger.LogError(ex, "Error, Something went wrong while sending message to chat group with name: {ChatGroupName}", request.ChatGroupName);
-                throw;
+                _logger.LogWarning("Chat Group with name: {ChatGroupName} wasnt found.", request.ChatGroupName);
+                return new ResultResponse
+                {
+                    IsSuccess = false,
+                    Error = "Chat group not found."
+                };
             }
+
+            var chatMessage = new ChatMessage
+            {
+                MessageId = Guid.NewGuid(),
+                Text = request.Message,
+                SenderId = request.UserId,
+                ReceiverId = chatGroup.Id,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _publisher.Publish(new SendChatGroupMessageEvent(chatMessage));
+
+            return new ResultResponse
+            {
+                IsSuccess = true
+            };
+
         }
     }
 }

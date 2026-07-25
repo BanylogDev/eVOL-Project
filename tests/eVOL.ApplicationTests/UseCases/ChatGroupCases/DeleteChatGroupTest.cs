@@ -1,9 +1,7 @@
-﻿using Moq;
-using eVOL.Domain.RepositoriesInteraces;
-using Microsoft.Extensions.Logging;
+﻿using eVOL.Application.Features.ChatGroupCases.Commands.DeleteChatGroup;
 using eVOL.Domain.Entities;
-using eVOL.Application.Features.ChatGroupCases.Commands.DeleteChatGroup;
-using eVOL.Application.DTOs;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 
 
@@ -41,7 +39,7 @@ namespace eVOL.ApplicationTests.UseCases.ChatGroupCases
 
             // Act
 
-            var result = await sut.Handle(new DeleteChatGroupCommand(new DeleteChatGroupDTO { ChatGroupId= Guid.Parse("00000000-0000-0000-0000-000000000000"), ChatGroupOwnerId= Guid.Parse("00000000-0000-0000-0000-000000000001") }), CancellationToken.None);
+            var result = await sut.Handle(new DeleteChatGroupCommand(new DeleteChatGroupDTO { ChatGroupId = Guid.Parse("00000000-0000-0000-0000-000000000000"), ChatGroupOwnerId = Guid.Parse("00000000-0000-0000-0000-000000000001") }), CancellationToken.None);
 
             // Assert
 

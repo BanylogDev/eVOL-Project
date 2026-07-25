@@ -1,11 +1,15 @@
 ﻿using Asp.Versioning;
-using eVOL.Application.DTOs.Requests;
+using eVOL.Application.DTOs.Requests.UserDTO;
+using eVOL.Application.DTOs.Requests.UserDTO.UpdateDTO;
 using eVOL.Application.Features.UserCases.Commands.DeleteUser;
 using eVOL.Application.Features.UserCases.Commands.UpdateUser;
+using eVOL.Application.Features.UserCases.Commands.UpdateUserEmail;
+using eVOL.Application.Features.UserCases.Commands.UpdateUserPassword;
 using eVOL.Application.Features.UserCases.Queries.GetUser;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace eVOL.API.Controllers.v1
 {
@@ -24,36 +28,64 @@ namespace eVOL.API.Controllers.v1
         }
 
 
-        [HttpPut]
-        public async Task<IActionResult> Update([FromBody] UpdateDTO dto)
+        [HttpPatch("edit/name")]
+        public async Task<IActionResult> UpdateName([FromBody] UpdateName dto, CancellationToken ct)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var user = await _sender.Send(new UpdateUserCommand(dto));
+            var userId = Guid.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
 
-            if (user == null) return NotFound();
+            var result = await _sender.Send(new UpdateUserNameCommand(userId, dto), ct);
 
-            return Ok(user);
+            if (!result.IsSuccess) return NotFound(result);
+
+            return Ok(result);
+        }
+
+        [HttpPatch("edit/email")]
+        public async Task<IActionResult> UpdateEmail([FromBody] UpdateEmail dto, CancellationToken ct)
+        {
+
+            var userId = Guid.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
+
+            var result = await _sender.Send(new UpdateUserEmailCommand(userId, dto), ct);
+
+            if (!result.IsSuccess) return NotFound(result);
+
+            return Ok(result);
+        }
+
+        [HttpPatch("edit/password")]
+        public async Task<IActionResult> UpdatePassword([FromBody] UpdatePassword dto, CancellationToken ct)
+        {
+            var userId = Guid.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
+
+            var result = await _sender.Send(new UpdateUserPasswordCommand(userId, dto), ct);
+
+            if (!result.IsSuccess) return NotFound(result);
+
+            return Ok(result);
         }
 
         [HttpDelete]
-        public async Task<IActionResult> Delete([FromBody] DeleteAccountDTO dto)
+        public async Task<IActionResult> Delete([FromBody] DeleteAccount dto, CancellationToken ct)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var userId = Guid.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
 
-            var user = await _sender.Send(new DeleteUserCommand(dto));
+            var result = await _sender.Send(new DeleteUserCommand(userId, dto), ct);
 
-            if (user == null) return NotFound(new { message = $"User with id {dto.Id} not found" });
+            if (!result.IsSuccess) return NotFound(result);
 
-            return Ok(new { message = "Account has been deleted successfully", user.Name });
+            return Ok(result);
         }
 
-        [HttpGet("{id:guid}")]
-        public async Task<IActionResult> GetUser(Guid id)
+        [HttpGet]
+        public async Task<IActionResult> GetUser(CancellationToken ct)
         {
-            var user = await _sender.Send(new GetUserQuery(id));
+            var userId = Guid.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
 
-            if (user == null) return NotFound("User wasnt found");
+            var user = await _sender.Send(new GetUserQuery(userId), ct);
+
+            if (!user.IsSuccess) return NotFound(user);
 
             return Ok(user);
         }

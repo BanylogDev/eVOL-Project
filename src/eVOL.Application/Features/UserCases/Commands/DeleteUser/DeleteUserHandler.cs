@@ -1,12 +1,12 @@
-﻿using eVOL.Application.ServicesInterfaces;
-using eVOL.Domain.Entities;
-using eVOL.Domain.RepositoriesInteraces;
+﻿using eVOL.Application.DTOs.Responses.Global;
+using eVOL.Application.RepositoriesInteraces.UnitsOfWork;
+using eVOL.Application.ServicesInterfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace eVOL.Application.Features.UserCases.Commands.DeleteUser
 {
-    public class DeleteUserHandler : IRequestHandler<DeleteUserCommand, User?>
+    public class DeleteUserHandler : IRequestHandler<DeleteUserCommand, ResultResponse>
     {
 
         private readonly IPostgreUnitOfWork _uow;
@@ -20,38 +20,51 @@ namespace eVOL.Application.Features.UserCases.Commands.DeleteUser
             _logger = logger;
         }
 
-        public async Task<User?> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
+        public async Task<ResultResponse> Handle(DeleteUserCommand request, CancellationToken ct)
         {
-            _logger.LogInformation("Starting DeleteUserUseCase for User ID: {UserId}", request.Dto.Id);
+            _logger.LogInformation("Starting DeleteUserUseCase for User ID: {UserId}", request.Id);
 
-            await _uow.BeginTransactionAsync();
+            var user = await _uow.Auth.GetUserPasswordById(request.Id, ct);
 
-            try
+            if (user == null)
             {
-                var user = await _uow.Users.GetUserById(request.Dto.Id);
-
-                if (user == null ||
-                   !_passwordHasher.VerifyPassword(request.Dto.Password, user.Password))
+                _logger.LogWarning("DeleteUserUseCase failed: User not found.");
+                return new ResultResponse
                 {
-                    _logger.LogWarning("DeleteUserUseCase failed: User not found or password mismatch.");
-                    return null;
-                }
-
-                _logger.LogInformation("Deleting User ID: {UserId}", request.Dto.Id);
-
-                _uow.Users.RemoveUser(user);
-                await _uow.CommitAsync();
-
-                _logger.LogInformation("DeleteUserUseCase completed successfully for User ID: {UserId}", request.Dto.Id);
-
-                return user;
+                    IsSuccess = false,
+                    Error = "User not found."
+                };
             }
-            catch (Exception ex)
+
+            if (!_passwordHasher.VerifyPassword(request.Dto.Password, user.Password))
             {
-                await _uow.RollbackAsync();
-                _logger.LogError(ex, "DeleteUserUseCase failed and rolled back for User ID: {UserId}", request.Dto.Id);
-                throw;
+                _logger.LogWarning("DeleteUserUseCase failed: Password mismatch.");
+                return new ResultResponse
+                {
+                    IsSuccess = false,
+                    Error = "Password mismatch."
+                };
             }
+
+            _logger.LogInformation("Deleting User ID: {UserId}", request.Id);
+
+            if (!await _uow.Users.DeleteUser(request.Id, user.RowVersion, ct))
+            {
+                _logger.LogError("DeleteUserUseCase failed for User ID: {UserId}", request.Id);
+                return new ResultResponse
+                {
+                    IsSuccess = false,
+                    Error = "Conflict! RowVersion mismatch"
+                };
+            }
+
+            _logger.LogInformation("DeleteUserUseCase completed successfully for User ID: {UserId}", request.Id);
+
+            return new ResultResponse
+            {
+                IsSuccess = true,
+            };
+
         }
     }
 }

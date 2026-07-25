@@ -1,13 +1,10 @@
-﻿using eVOL.Domain.RepositoriesInteraces;
-using Moq;
-using eVOL.Application.ServicesInterfaces;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using eVOL.Domain.Entities;
-using eVOL.Application.DTOs.Requests;
-using eVOL.Application.Features.UserCases.Commands.RefreshToken;
-using Microsoft.Extensions.Options;
+﻿using eVOL.Application.Features.UserCases.Commands.RefreshToken;
 using eVOL.Application.Options;
+using eVOL.Application.ServicesInterfaces;
+using eVOL.Domain.Entities;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Moq;
 
 
 namespace eVOL.ApplicationTests.UseCases.UserCases
@@ -15,7 +12,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
     public class RefreshTokenTest
     {
         [Fact]
-        public async Task RefreshToken_RefreshJWTToken_ReturnsTokenDto( )
+        public async Task RefreshToken_RefreshJWTToken_ReturnsTokenDto()
         {
             // Arrange
 
@@ -106,7 +103,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
             // Assert
 
             Assert.Null(result);
-            
+
             uowMock.Verify(u => u.BeginTransactionAsync(), Times.Once);
         }
 

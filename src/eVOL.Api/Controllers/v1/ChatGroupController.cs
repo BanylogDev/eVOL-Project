@@ -1,6 +1,5 @@
 ﻿using Asp.Versioning;
-using eVOL.Application.DTOs;
-using eVOL.Application.DTOs.Requests;
+using eVOL.Application.DTOs.Requests.ChatGroupDTO;
 using eVOL.Application.Features.ChatGroupCases.Commands.CreateChatGroup;
 using eVOL.Application.Features.ChatGroupCases.Commands.DeleteChatGroup;
 using eVOL.Application.Features.ChatGroupCases.Commands.TransferOwnershipOfChatGroup;
@@ -8,6 +7,7 @@ using eVOL.Application.Features.ChatGroupCases.Queries.GetChatGroupById;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace eVOL.API.Controllers.v1
 {
@@ -22,29 +22,31 @@ namespace eVOL.API.Controllers.v1
         public ChatGroupController(ISender sender)
         {
             _sender = sender;
-        }   
+        }
 
         [HttpPost("create")]
-        public async Task<IActionResult> CreateChatGroup(ChatGroupDTO dto)
+        public async Task<IActionResult> CreateChatGroup(ChatGroupCreate dto)
         {
 
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var userId = Guid.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
 
-            var chatGroup = await _sender.Send(new CreateChatGroupCommand(dto));
+            var result = await _sender.Send(new CreateChatGroupCommand(dto, userId));
 
-            if (chatGroup == null) return BadRequest("Something went wrong.");
+            if (!result.IsSuccess) return NotFound(result);
 
-            return Ok(chatGroup);
+            return Ok(result);
         }
 
         [HttpDelete("delete")]
         public async Task<IActionResult> DeleteChatGroup([FromBody] DeleteChatGroupDTO dto)
         {
-            var chatGroup = await _sender.Send(new DeleteChatGroupCommand(dto));
+            var userId = Guid.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
 
-            if (chatGroup == null) return NotFound();
+            var result = await _sender.Send(new DeleteChatGroupCommand(dto, userId));
 
-            return Ok(chatGroup);
+            if (!result.IsSuccess) return NotFound(result);
+
+            return Ok(result);
         }
 
         [HttpGet("{id:guid}")]
@@ -58,15 +60,15 @@ namespace eVOL.API.Controllers.v1
         }
 
         [HttpPut("transfer")]
-        public async Task<IActionResult> TransferOwnershipOfChatGroup(TransferOwnershipOfCGDTO dto)
+        public async Task<IActionResult> TransferOwnershipOfChatGroup(TransferOwnershipOfCG dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var userId = Guid.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
 
-            var chatGroup = await _sender.Send(new TransferOwnershipOfChatGroupCommand(dto));
+            var result = await _sender.Send(new TransferOwnershipOfChatGroupCommand(dto, userId));
 
-            if (chatGroup == null) return NotFound("Something went wrong");
+            if (!result.IsSuccess) return NotFound(result);
 
-            return Ok(chatGroup);
+            return Ok(result);
 
 
         }

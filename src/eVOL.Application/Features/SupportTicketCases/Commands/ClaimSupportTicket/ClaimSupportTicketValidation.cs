@@ -6,11 +6,11 @@ namespace eVOL.Application.Features.SupportTicketCases.Commands.ClaimSupportTick
     {
         public ClaimSupportTicketValidation()
         {
-            RuleFor(s => s.Dto.Id)
+            RuleFor(s => s.Dto.SupportTicketId)
                 .NotEmpty()
-                .WithMessage("SupportTicket ID is required."); 
+                .WithMessage("SupportTicket ID is required.");
 
-            RuleFor(s => s.Dto.OpenedBy)
+            RuleFor(s => s.ClaimerId)
                 .NotEmpty()
                 .WithMessage("User ID is required to claim the support ticket.");
 

@@ -1,10 +1,7 @@
-﻿using Moq;
-using eVOL.Domain.RepositoriesInteraces;
-using Microsoft.Extensions.Logging;
+﻿using eVOL.Application.Features.UserCases.Queries.GetUser;
 using eVOL.Domain.Entities;
-using Mapster;
-using eVOL.Application.DTOs.Responses.User;
-using eVOL.Application.Features.UserCases.Queries.GetUser;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace eVOL.ApplicationTests.UseCases.UserCases
 {

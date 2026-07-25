@@ -1,5 +1,5 @@
 ﻿using Asp.Versioning;
-using eVOL.Application.DTOs.Requests;
+using eVOL.Application.DTOs.Requests.SupportTicketDTO;
 using eVOL.Application.Features.SupportTicketCases.Commands.ClaimSupportTicket;
 using eVOL.Application.Features.SupportTicketCases.Commands.CreateSupportTicket;
 using eVOL.Application.Features.SupportTicketCases.Commands.DeleteSupportTicket;
@@ -8,13 +8,14 @@ using eVOL.Application.Features.SupportTicketCases.Queries.GetSupportTicketById;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace eVOL.API.Controllers.v1
 {
     [ApiController]
     [Route("api/{version:apiVersion}/support-ticket")]
     [ApiVersion("1.0")]
-    [Authorize(Roles = "User,Admin")]
+    [Authorize(Roles = "User,Admin,Support")]
     public class SupportTicketController : ControllerBase
     {
         private readonly ISender _sender;
@@ -26,61 +27,61 @@ namespace eVOL.API.Controllers.v1
 
 
         [HttpPost]
-        public async Task<IActionResult> CreateSupportTicket(SupportTicketDTO dto)
+        public async Task<IActionResult> CreateSupportTicket(SupportTicketDto dto)
         {
+            var userId = Guid.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
 
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var result = await _sender.Send(new CreateSupportTicketCommand(dto, userId));
 
-            var supportTicket = await _sender.Send(new CreateSupportTicketCommand(dto));
+            if (!result.IsSuccess) return BadRequest(result);
 
-            if (supportTicket == null) return BadRequest("Something went wrong");
-
-            return Ok(supportTicket);
+            return Ok(result);
         }
 
         [HttpDelete("{id:guid}")]
+        [Authorize(Roles = "Admin,Support")]
         public async Task<IActionResult> DeleteSupportTicket(Guid id)
         {
-            var supportTicket = await _sender.Send(new DeleteSupportTicketCommand(id));
+            var result = await _sender.Send(new DeleteSupportTicketCommand(id));
 
-            if (supportTicket == null) return NotFound("Something went wrong");
+            if (!result.IsSuccess) return NotFound(result);
 
-            return Ok(supportTicket);
+            return Ok(result);
         }
 
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetSupportTicketById(Guid id)
         {
-            var supportTicket = await _sender.Send(new GetSupportTicketByIdQuery(id));
+            var result = await _sender.Send(new GetSupportTicketByIdQuery(id));
 
-            if (supportTicket == null) return NotFound("Support ticket wasnt found");
+            if (!result.IsSuccess) return NotFound(result);
 
-            return Ok(supportTicket);
+            return Ok(result);
         }
 
         [HttpPost("claim")]
+        [Authorize(Roles = "Admin,Support")]
         public async Task<IActionResult> ClaimSupportTicket([FromBody] ClaimSupportTicketDTO dto)
         {
 
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var claimerId = Guid.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
 
-            var user = await _sender.Send(new ClaimSupportTicketCommand(dto));
+            var result = await _sender.Send(new ClaimSupportTicketCommand(dto, claimerId));
 
-            if (user == null) return NotFound("Something went wrong");
+            if (!result.IsSuccess) return NotFound(result);
 
-            return Ok(user);
+            return Ok(result);
         }
 
         [HttpDelete("unclaim")]
+        [Authorize(Roles = "Admin,Support")]
         public async Task<IActionResult> UnClaimSupportTicket([FromBody] ClaimSupportTicketDTO dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var result = await _sender.Send(new UnClaimSupportTicketCommand(dto));
 
-            var user = await _sender.Send(new UnClaimSupportTicketCommand(dto)); 
+            if (!result.IsSuccess) return NotFound(result);
 
-            if (user == null) return NotFound("Something went wrong");
-
-            return Ok(user);
+            return Ok(result);
         }
     }
 }

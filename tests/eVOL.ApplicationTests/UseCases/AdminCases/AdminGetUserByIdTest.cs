@@ -1,8 +1,7 @@
-﻿using Moq;
-using eVOL.Domain.RepositoriesInteraces;
+﻿using eVOL.Application.Features.AdminCases.Queries.AdminGetUser;
 using eVOL.Domain.Entities;
 using Microsoft.Extensions.Logging;
-using eVOL.Application.Features.AdminCases.Queries.AdminGetUser;
+using Moq;
 
 
 namespace eVOL.ApplicationTests.UseCases.AdminCases

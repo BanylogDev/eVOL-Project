@@ -1,11 +1,11 @@
-﻿using eVOL.Domain.Entities;
-using eVOL.Domain.RepositoriesInteraces;
+﻿using eVOL.Application.DTOs.Responses.Global;
+using eVOL.Application.RepositoriesInteraces.UnitsOfWork;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace eVOL.Application.Features.SupportTicketCases.Commands.ClaimSupportTicket
 {
-    public class ClaimSupportTicketHandler : IRequestHandler<ClaimSupportTicketCommand, User?>
+    public class ClaimSupportTicketHandler : IRequestHandler<ClaimSupportTicketCommand, ResultResponse>
     {
 
         private readonly IPostgreUnitOfWork _uow;
@@ -17,42 +17,28 @@ namespace eVOL.Application.Features.SupportTicketCases.Commands.ClaimSupportTick
             _logger = logger;
         }
 
-        public async Task<User?> Handle(ClaimSupportTicketCommand request, CancellationToken cancellationToken)
+        public async Task<ResultResponse> Handle(ClaimSupportTicketCommand request, CancellationToken ct)
         {
-            _logger.LogInformation("Starting ClaimSupportTicketUseCase for SupportTicket ID: {SupportTicketId} by User ID: {UserId}", request.Dto.Id, request.Dto.OpenedBy);
+            _logger.LogInformation("Starting ClaimSupportTicketUseCase for SupportTicket ID: {SupportTicketId} by User ID: {UserId}", request.Dto.SupportTicketId, request.ClaimerId);
 
-            await _uow.BeginTransactionAsync();
-
-            try
+            if (!await _uow.SupportTicket.ClaimSupportTicket(request.Dto.SupportTicketId, request.ClaimerId, ct))
             {
-                var user = await _uow.Users.GetUserById(request.Dto.OpenedBy);
-
-                var supportTicket = await _uow.SupportTicket.GetSupportTicketById(request.Dto.Id);
-
-                if (user == null || supportTicket == null || supportTicket.ClaimedStatus == true)
+                _logger.LogWarning("ClaimSupportTicketUseCase failed claiming SupportTicket with ID: {SupportTicketId}", request.Dto.SupportTicketId);
+                return new ResultResponse
                 {
-                    _logger.LogWarning("ClaimSupportTicketUseCase failed: User or SupportTicket not found, or SupportTicket already claimed.");
-                    return null;
-                }
-
-                _logger.LogInformation("Claiming SupportTicket ID: {SupportTicketId} by User ID: {UserId}", request.Dto.Id, request.Dto.OpenedBy);
-                supportTicket.ClaimedById = request.Dto.OpenedBy;
-                supportTicket.ClaimedBy = user;
-                supportTicket.ClaimedStatus = true;
-                _logger.LogInformation("SupportTicket ID: {SupportTicketId} successfully claimed by User ID: {UserId}", request.Dto.Id, request.Dto.OpenedBy);
-
-                await _uow.CommitAsync();
-
-                _logger.LogInformation("ClaimSupportTicketUseCase completed successfully for SupportTicket ID: {SupportTicketId} by User ID: {UserId}", request.Dto.Id, request.Dto.OpenedBy);
-
-                return user;
+                    IsSuccess = false,
+                    Error = "Not Found."
+                };
             }
-            catch (Exception ex)
+
+            _logger.LogInformation("ClaimSupportTicketUseCase completed successfully for SupportTicket ID: {SupportTicketId} by User ID: {UserId}", request.Dto.SupportTicketId, request.ClaimerId);
+
+            return new ResultResponse
             {
-                await _uow.RollbackAsync();
-                _logger.LogError(ex, "ClaimSupportTicketUseCase failed and rolled back for SupportTicket ID: {SupportTicketId} by User ID: {UserId}", request.Dto.Id, request.Dto.OpenedBy);
-                throw;
-            }
+                IsSuccess = true,
+            };
+
+
         }
     }
 }

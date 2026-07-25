@@ -1,0 +1,29 @@
+﻿using eVOL.Application.RepositoriesInteraces;
+using eVOL.Application.RepositoriesInteraces.UnitsOfWork;
+using MongoDB.Driver;
+
+namespace eVOL.Infrastructure.Persistence.UnitsOfWork
+{
+    public class MongoUnitOfWork : IMongoUnitOfWork
+    {
+        private readonly IClientSessionHandle _session;
+
+        public IMessageRepository Message { get; }
+
+        public MongoUnitOfWork(IClientSessionHandle session, IMessageRepository message)
+        {
+            _session = session;
+            Message = message;
+        }
+
+        public void BeginTransactionAsync() =>
+            _session.StartTransaction();
+
+        public async Task CommitAsync() =>
+            await _session.CommitTransactionAsync();
+
+        public async Task RollbackAsync() =>
+            await _session.AbortTransactionAsync();
+    }
+
+}

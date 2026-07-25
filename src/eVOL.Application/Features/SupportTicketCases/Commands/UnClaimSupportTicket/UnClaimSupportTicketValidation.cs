@@ -6,12 +6,9 @@ namespace eVOL.Application.Features.SupportTicketCases.Commands.UnClaimSupportTi
     {
         public UnClaimSupportTicketValidation()
         {
-            RuleFor(s => s.Dto.Id)
+            RuleFor(s => s.Dto.SupportTicketId)
                 .NotEmpty()
-                .WithMessage("SupportTicket ID is required."); 
-            RuleFor(s => s.Dto.OpenedBy)
-                .NotEmpty()
-                .WithMessage("OpenedBy ID is required to unclaim the support ticket.");
+                .WithMessage("SupportTicket ID is required.");
         }
     }
 }

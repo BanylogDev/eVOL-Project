@@ -1,8 +1,8 @@
-﻿using eVOL.Application.DTOs.Requests;
-using eVOL.Application.DTOs.Responses.User;
+﻿using eVOL.Application.DTOs.Requests.UserDTO;
+using eVOL.Application.DTOs.Responses.Global;
 using MediatR;
 
 namespace eVOL.Application.Features.UserCases.Commands.RegisterUser
 {
-    public record RegisterUserCommand(RegisterDTO Dto) : IRequest<RegisterUserResponse?>;
+    public record RegisterUserCommand(Register Dto) : IRequest<ResultResponse>;
 }

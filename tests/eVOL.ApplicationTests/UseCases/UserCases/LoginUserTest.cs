@@ -1,13 +1,10 @@
-﻿using Moq;
-using eVOL.Domain.RepositoriesInteraces;
-using eVOL.Application.ServicesInterfaces;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using eVOL.Domain.Entities;
-using eVOL.Application.DTOs;
-using eVOL.Application.Features.UserCases.Commands.LoginUser;
-using Microsoft.Extensions.Options;
+﻿using eVOL.Application.Features.UserCases.Commands.LoginUser;
 using eVOL.Application.Options;
+using eVOL.Application.ServicesInterfaces;
+using eVOL.Domain.Entities;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Moq;
 
 
 namespace eVOL.ApplicationTests.UseCases.UserCases
@@ -61,7 +58,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
             {
                 Email = "email",
                 Password = "password"
-            }),CancellationToken.None);
+            }), CancellationToken.None);
 
             // Assert
 
@@ -82,7 +79,7 @@ namespace eVOL.ApplicationTests.UseCases.UserCases
 
         }
 
-        [Fact] 
+        [Fact]
         public async Task LoginUser_LoginUserNull_ReturnsNull()
         {
             // Arrange

@@ -1,7 +1,7 @@
-﻿using eVOL.Domain.Entities;
+﻿using eVOL.Application.DTOs.Responses.ChatGroupResponses.ApplicationLayer;
 using MediatR;
 
 namespace eVOL.Application.Features.ChatGroupCases.Queries.GetChatGroupById
 {
-    public record GetChatGroupByIdQuery(Guid Id) : IRequest<ChatGroup?>;
+    public record GetChatGroupByIdQuery(Guid Id) : IRequest<GetChatGroupResponse>;
 }

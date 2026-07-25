@@ -1,15 +1,15 @@
-﻿using eVOL.Application.DTOs.Responses.User;
+﻿
+using eVOL.Application.DTOs.Responses.Global;
+using eVOL.Application.RepositoriesInteraces.UnitsOfWork;
 using eVOL.Application.ServicesInterfaces;
 using eVOL.Domain.Entities;
-using eVOL.Domain.RepositoriesInteraces;
 using eVOL.Domain.ValueObjects;
-using Mapster;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace eVOL.Application.Features.UserCases.Commands.RegisterUser
 {
-    public class RegisterUserHandler : IRequestHandler<RegisterUserCommand, RegisterUserResponse?>
+    public class RegisterUserHandler : IRequestHandler<RegisterUserCommand, ResultResponse>
     {
 
         private readonly IPostgreUnitOfWork _uow;
@@ -23,68 +23,70 @@ namespace eVOL.Application.Features.UserCases.Commands.RegisterUser
             _logger = logger;
         }
 
-        public async Task<RegisterUserResponse?> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
+        public async Task<ResultResponse> Handle(RegisterUserCommand request, CancellationToken ct)
         {
             _logger.LogInformation("Starting RegisterUserUseCase for Name: {Name}, Email: {Email}", request.Dto.Name, request.Dto.Email);
 
-            await _uow.BeginTransactionAsync();
+            var existingEmail = await _uow.Users.GetUserIdByEmail(request.Dto.Email, ct);
 
-            try
+            if (existingEmail is not null)
             {
-                var existingName = await _uow.Users.GetUserByName(request.Dto.Name);
-                var existingEmail = await _uow.Users.GetUserByEmail(request.Dto.Email);
-
-                if (existingName != null || existingEmail != null)
+                _logger.LogWarning("RegisterUserUseCase failed: Email already exists. Email: {Email}", request.Dto.Email);
+                return new ResultResponse
                 {
-                    _logger.LogWarning("RegisterUserUseCase failed: Name or Email already exists. Name: {Name}, Email: {Email}", request.Dto.Name, request.Dto.Email);
-                    return null;
-                }
-
-
-                _logger.LogInformation("Hashing password for Name: {Name}", request.Dto.Name);
-
-                var hashedPassword = _passwordHasher.HashPassword(request.Dto.Password);
-
-                var newAddress = new Address
-                (
-                    request.Dto.Country,
-                    request.Dto.City,
-                    request.Dto.AddressName,
-                    request.Dto.AddressNumber
-                );
-
-                var newMoney = new Money(
-                    request.Dto.Balance,
-                    request.Dto.Currency);
-
-
-                var newUser = new User
-                {
-                    UserId = Guid.NewGuid(),
-                    Name = request.Dto.Name,
-                    Email = request.Dto.Email,
-                    Password = hashedPassword,
-                    Address = newAddress,
-                    Role = "User",
-                    Money = newMoney,
-                    CreatedAt = DateTime.UtcNow,
+                    IsSuccess = false,
+                    Error = "Email already exists."
                 };
-
-                _logger.LogInformation("Registering new user: Name: {Name}, Email: {Email}", request.Dto.Name, request.Dto.Email);
-
-                await _uow.Auth.Register(newUser);
-                await _uow.CommitAsync();
-
-                _logger.LogInformation("RegisterUserUseCase completed successfully for Name: {Name}, Email: {Email}", request.Dto.Name, request.Dto.Email);
-
-                return newUser.Adapt<RegisterUserResponse>();
             }
-            catch (Exception ex)
+
+            var hashedPassword = _passwordHasher.HashPassword(request.Dto.Password);
+
+            var newAddress = new Address
+            (
+                request.Dto.Country,
+                request.Dto.City,
+                request.Dto.AddressName,
+                request.Dto.AddressNumber
+            );
+
+            var newMoney = new Money(
+                request.Dto.Balance,
+                request.Dto.Currency);
+
+
+            var newUser = new User
             {
-                await _uow.RollbackAsync();
-                _logger.LogError(ex, "RegisterUserUseCase failed and rolled back for Name: {Name}, Email: {Email}", request.Dto.Name, request.Dto.Email);
-                throw;
+                UserId = Guid.NewGuid(),
+                Name = request.Dto.Name,
+                Email = request.Dto.Email,
+                Password = hashedPassword,
+                Address = newAddress,
+                Role = "User",
+                Money = newMoney,
+                CreatedAt = DateTime.UtcNow,
+            };
+
+            _logger.LogInformation("Registering new user: Name: {Name}, Email: {Email}", request.Dto.Name, request.Dto.Email);
+
+            if (!await _uow.Auth.Register(newUser, ct))
+            {
+                _logger.LogError("RegisterUserUseCase failed, something went wrong!");
+                return new ResultResponse
+                {
+                    IsSuccess = false,
+                    Error = "An error occurred while processing your request. Please try again later."
+                };
             }
+
+            await _uow.CommitAsync();
+
+            _logger.LogInformation("RegisterUserUseCase completed successfully for Name: {Name}, Email: {Email}", request.Dto.Name, request.Dto.Email);
+
+            return new ResultResponse
+            {
+                IsSuccess = true
+            };
+
         }
     }
 }

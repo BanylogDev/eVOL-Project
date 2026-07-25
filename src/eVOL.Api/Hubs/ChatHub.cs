@@ -19,40 +19,40 @@ namespace eVOL.API.Hubs
             _sender = sender;
         }
 
-        public async Task AddUserToGroup(string groupName, Guid userId)
+        public async Task AddUserToGroup(string groupName, Guid userId, Guid ownerId)
         {
 
-            var user = await _sender.Send(new AddUserToChatGroupCommand(userId, groupName));
+            var result = await _sender.Send(new AddUserToChatGroupCommand(ownerId, userId, groupName));
 
-            if (user == null) return;
+            if (!result.IsSuccess) return;
 
             await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
 
-            await Clients.Group(groupName).SendAsync("ReceiveGroupMessage", user.Name, new ChatMessage
+            await Clients.Group(groupName).SendAsync("ReceiveGroupMessage", result.Name, new ChatMessage
             {
-                Text = $"{user.Name} has joined the group!",
+                Text = $"{result.Name} has joined the group!",
                 CreatedAt = DateTime.Now,
             });
         }
 
         public async Task LeaveGroup(string groupName, Guid userId)
         {
-            var user = await _sender.Send(new LeaveChatGroupCommand(userId, groupName));
+            var result = await _sender.Send(new LeaveChatGroupCommand(userId, groupName));
 
-            if (user == null) return;
+            if (!result.IsSuccess) return;
 
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
 
-            await Clients.Group(groupName).SendAsync("ReceiveGroupMessage", user.Name, new ChatMessage
+            await Clients.Group(groupName).SendAsync("ReceiveGroupMessage", result.Name, new ChatMessage
             {
-                Text = $"{user.Name} has left the group!",
+                Text = $"{result.Name} has left the group!",
                 CreatedAt = DateTime.Now,
             });
         }
 
-        public async Task RemoveUserFromGroup(string groupName, Guid userId)
+        public async Task RemoveUserFromGroup(Guid ownerId, string groupName, Guid userId)
         {
-            var user = await _sender.Send(new RemoveUserFromChatGroupCommand(userId, groupName));
+            var user = await _sender.Send(new RemoveUserFromChatGroupCommand(ownerId, userId, groupName));
 
             if (user == null) return;
 
@@ -67,20 +67,20 @@ namespace eVOL.API.Hubs
 
         public async Task SendGroupMessage(string groupName, Guid userId, string message)
         {
-            (ChatMessage? newMessage, User? user) = await _sender.Send(new SendChatGroupMessageCommand(message, groupName, userId));
+            var result = await _sender.Send(new SendChatGroupMessageCommand(message, groupName, userId));
 
-            if (newMessage == null || user == null) return;
+            if (!result.IsSuccess) return;
 
-            await Clients.Group(groupName).SendAsync("ReceiveGroupCustomMessage", user.Name, newMessage);
+            await Clients.Group(groupName).SendAsync("ReceiveGroupCustomMessage");
         }
 
         public async Task SendSupportTicketMessage(string supportTicketName, Guid userId, string message)
         {
-            (ChatMessage? newMessage, User? user) = await _sender.Send(new SendSupportTicketMessageCommand(message, supportTicketName, userId));
+            var result = await _sender.Send(new SendSupportTicketMessageCommand(message, supportTicketName, userId));
 
-            if (newMessage == null || user == null) return;
+            if (!result.IsSuccess) return;
 
-            await Clients.Group(supportTicketName).SendAsync("ReceiveSupportTicketCustomMessage", user.Name, newMessage);
+            await Clients.Group(supportTicketName).SendAsync("ReceiveSupportTicketCustomMessage");
         }
 
     }

@@ -1,10 +1,9 @@
-﻿using Moq;
-using eVOL.Domain.RepositoriesInteraces;
-using eVOL.Application.ServicesInterfaces;
-using Microsoft.Extensions.Logging;
-using eVOL.Domain.Entities;
+﻿using eVOL.Application.Features.AdminCases.Commands.AdminDeleteUser;
 using eVOL.Application.FeaturesCases.Admin.Commands.AdminDeleteUser;
-using eVOL.Application.Features.AdminCases.Commands.AdminDeleteUser;
+using eVOL.Application.ServicesInterfaces;
+using eVOL.Domain.Entities;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 
 namespace eVOL.ApplicationTests.UseCases.AdminCases

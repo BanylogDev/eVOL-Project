@@ -1,8 +1,7 @@
-﻿using Moq;
-using eVOL.Domain.RepositoriesInteraces;
-using Microsoft.Extensions.Logging;
+﻿using eVOL.Application.Features.SupportTicketCases.Commands.DeleteSupportTicket;
 using eVOL.Domain.Entities;
-using eVOL.Application.Features.SupportTicketCases.Commands.DeleteSupportTicket;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 
 namespace eVOL.ApplicationTests.UseCases.SupportTicketCases

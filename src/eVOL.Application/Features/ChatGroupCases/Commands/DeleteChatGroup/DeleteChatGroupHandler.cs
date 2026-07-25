@@ -1,11 +1,11 @@
-﻿using eVOL.Domain.Entities;
-using eVOL.Domain.RepositoriesInteraces;
+﻿using eVOL.Application.DTOs.Responses.Global;
+using eVOL.Application.RepositoriesInteraces.UnitsOfWork;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace eVOL.Application.Features.ChatGroupCases.Commands.DeleteChatGroup
 {
-    public class DeleteChatGroupHandler : IRequestHandler<DeleteChatGroupCommand, ChatGroup?>
+    public class DeleteChatGroupHandler : IRequestHandler<DeleteChatGroupCommand, ResultResponse>
     {
 
         private readonly IPostgreUnitOfWork _uow;
@@ -17,37 +17,26 @@ namespace eVOL.Application.Features.ChatGroupCases.Commands.DeleteChatGroup
             _logger = logger;
         }
 
-        public async Task<ChatGroup?> Handle(DeleteChatGroupCommand request, CancellationToken cancellationToken)
+        public async Task<ResultResponse> Handle(DeleteChatGroupCommand request, CancellationToken ct)
         {
             _logger.LogInformation("Started deleting chat group with id: {ChatGroupId}", request.Dto.ChatGroupId);
 
-            await _uow.BeginTransactionAsync();
-
-            try
+            if (!await _uow.ChatGroup.DeleteChatGroup(request.Dto.ChatGroupId, request.UserId, ct))
             {
-                var chatGroup = await _uow.ChatGroup.GetChatGroupById(request.Dto.ChatGroupId);
-
-                if (chatGroup == null || chatGroup.OwnerId != request.Dto.ChatGroupOwnerId)
+                _logger.LogWarning("Error, Something went wrong during the deletion of chat group with id: {ChatGroupId}", request.Dto.ChatGroupId);
+                return new ResultResponse
                 {
-                    _logger.LogWarning("Chat Group with id: {ChatGroupId} wasn't found or user that triggered the action with id: {UserId} isn't the owner of the chat group", request.Dto.ChatGroupId, request.Dto.ChatGroupOwnerId);
-                    return null;
-                }
-
-                _logger.LogInformation("Deleting chat group with name: {ChatGroupName}", chatGroup.Name);
-
-                _uow.ChatGroup.DeleteChatGroup(chatGroup);
-                await _uow.CommitAsync();
-
-                _logger.LogInformation("Ended deleting chat group with name: {ChatGroupName}, Success!", chatGroup.Name);
-
-                return chatGroup;
+                    IsSuccess = false,
+                    Error = ""
+                };
             }
-            catch (Exception ex)
+
+            _logger.LogInformation("Ended deleting chat group with id: {ChatGroupId}, Success!", request.Dto.ChatGroupId);
+
+            return new ResultResponse
             {
-                await _uow.RollbackAsync();
-                _logger.LogError(ex, "Error, Something went wrong during the deletion of chat group with id: {ChatGroupId}", request.Dto.ChatGroupId);
-                throw;
-            }
+                IsSuccess = true,
+            };
         }
     }
 }

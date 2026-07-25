@@ -6,8 +6,12 @@
         public string Name { get; set; } = string.Empty;
         public int TotalUsers { get; set; }
         public Guid OwnerId { get; set; }
+        public User? Owner { get; set; }
         public DateTime CreatedAt { get; set; }
 
-        public ICollection<User> GroupUsers { get; set; } = new List<User>();
+        public ICollection<ChatMessage> Messages { get; set; } = new List<ChatMessage>();
+        public ICollection<ChatGroupUser> GroupUsers { get; set; } = new List<ChatGroupUser>();
+
+        public byte[]? RowVersion { get; init; }
     }
 }

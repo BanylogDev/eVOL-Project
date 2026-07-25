@@ -2,7 +2,7 @@
 
 namespace eVOL.Infrastructure.Services
 {
-    public class PasswordHasher : IPasswordHasher
+    public sealed class PasswordHasher : IPasswordHasher
     {
         public string HashPassword(string password)
         {

@@ -1,11 +1,12 @@
-﻿using eVOL.Domain.Entities;
-using eVOL.Domain.RepositoriesInteraces;
+﻿using eVOL.Application.DTOs.Responses.Global;
+using eVOL.Application.RepositoriesInteraces.UnitsOfWork;
+using eVOL.Domain.Entities;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace eVOL.Application.Features.SupportTicketCases.Commands.CreateSupportTicket
 {
-    public class CreateSupportTicketHandler : IRequestHandler<CreateSupportTicketCommand, SupportTicket?>
+    public class CreateSupportTicketHandler : IRequestHandler<CreateSupportTicketCommand, ResultResponse>
     {
 
         private readonly IPostgreUnitOfWork _uow;
@@ -17,49 +18,65 @@ namespace eVOL.Application.Features.SupportTicketCases.Commands.CreateSupportTic
             _logger = logger;
         }
 
-        public async Task<SupportTicket?> Handle(CreateSupportTicketCommand request, CancellationToken cancellationToken)
+        public async Task<ResultResponse> Handle(CreateSupportTicketCommand request, CancellationToken ct)
         {
-            _logger.LogInformation("Starting CreateSupportTicketUseCase for User ID: {UserId}", request.Dto.OpenedBy);
+            _logger.LogInformation("Starting CreateSupportTicketUseCase for User ID: {UserId}", request.UserId);
 
-            await _uow.BeginTransactionAsync();
+            var user = await _uow.Users.CheckUserExistance(request.UserId, ct);
 
-            try
+            if (!user)
             {
-
-                var user = await _uow.Users.GetUserById(request.Dto.OpenedBy);
-
-                if (user == null)
+                _logger.LogError("User not found in CreateSupportTicketUseCase with id: {UserId}", request.UserId);
+                return new ResultResponse
                 {
-                    return null;
-                }
-
-                var newSupportTicket = new SupportTicket()
-                {
-                    Id = Guid.NewGuid(),
-                    Category = request.Dto.Category,
-                    Text = request.Dto.Text,
-                    OpenedById = request.Dto.OpenedBy,
-                    ClaimedById = Guid.Empty,
-                    OpenedBy = user,
-                    CreatedAt = DateTime.UtcNow
-
+                    IsSuccess = false,
+                    Error = "User not found."
                 };
-
-                _logger.LogInformation("Creating SupportTicket for User ID: {UserId}", request.Dto.OpenedBy);
-
-                await _uow.SupportTicket.CreateSupportTicket(newSupportTicket);
-                await _uow.CommitAsync();
-
-                _logger.LogInformation("CreateSupportTicketUseCase completed successfully for User ID: {UserId}", request.Dto.OpenedBy);
-
-                return newSupportTicket;
             }
-            catch (Exception ex)
+
+            var supportTicketId = Guid.NewGuid();
+
+            var chatMessage = new ChatMessage
             {
-                await _uow.RollbackAsync();
-                _logger.LogError(ex, "CreateSupportTicketUseCase failed and rolled back for User ID: {UserId}", request.Dto.OpenedBy);
-                throw;
+                MessageId = Guid.NewGuid(),
+                Text = request.Dto.Text,
+                SenderId = request.UserId,
+                ReceiverId = supportTicketId,
+                CreatedAt = DateTime.UtcNow,
+            };
+
+            var messagesList = new List<ChatMessage>();
+            messagesList.Add(chatMessage);
+
+            var newSupportTicket = new SupportTicket()
+            {
+                Id = supportTicketId,
+                Category = request.Dto.Category,
+                Messages = messagesList,
+                OpenedById = request.UserId,
+                CreatedAt = DateTime.UtcNow
+
+            };
+
+            _logger.LogInformation("Creating SupportTicket for User ID: {UserId}", request.UserId);
+
+            if (!await _uow.SupportTicket.CreateSupportTicket(newSupportTicket, ct))
+            {
+                _logger.LogWarning("CreateSupportTicketUseCase failed.");
+                return new ResultResponse
+                {
+                    IsSuccess = false,
+                    Error = "Support Ticket Creation Failed."
+                };
             }
+
+            _logger.LogInformation("CreateSupportTicketUseCase completed successfully for User ID: {UserId}", request.UserId);
+
+            return new ResultResponse
+            {
+                IsSuccess = true
+            };
+
         }
     }
 }
