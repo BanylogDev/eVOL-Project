@@ -22,7 +22,7 @@ jobs:
       run: dotnet restore eVOL.sln
 
     - name: Build API
-      run: dotnet build src/eVOL.API/eVOL.API.csproj --no-restore --configuration Debug
+      run: dotnet build src/eVOL.Api/eVOL.API.csproj --no-restore --configuration Debug
 
     - name: Build Application
       run: dotnet build src/eVOL.Application/eVOL.Application.csproj --no-restore --configuration Debug
