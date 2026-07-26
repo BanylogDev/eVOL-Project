@@ -72,9 +72,24 @@ namespace eVOL.Application.Features.ChatGroupCases.Commands.LeaveChatGroup
             await _uow.BeginTransactionAsync();
 
             try
-            {
+            {   
+
                 chatGroup.Users.Remove(user);
                 chatGroup.TotalUsers -= 1;
+
+                if (request.UserId == chatGroup.OwnerId)
+                {
+                    var usersList = chatGroup.Users.ToList();
+                    var random = new Random();
+
+                    var newOwner = usersList[random.Next(usersList.Count)];
+                    chatGroup.OwnerId = newOwner.UserId;
+
+                    _logger.LogInformation(
+                        "Owner left group. New owner assigned: {NewOwnerId}",
+                        newOwner.UserId
+                    );
+                }
 
                 await _uow.CommitAsync();
 
